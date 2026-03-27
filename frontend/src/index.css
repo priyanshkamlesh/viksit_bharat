@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at top, rgba(16, 185, 129, 0.12), transparent 30%),
+    linear-gradient(180deg, #f7fff9 0%, #ecfdf5 45%, #f0fdf4 100%);
+  color: #0f172a;
+}
+
+button,
+a,
+[role="button"],
+summary,
+input[type="file"]::file-selector-button {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.22);
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.8), rgba(20, 184, 166, 0.7));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(5, 150, 105, 0.9), rgba(13, 148, 136, 0.85));
+}

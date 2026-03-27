@@ -1,0 +1,116 @@
+[
+  {
+    "id": 1,
+    "name": "Aarav",
+    "skills": {
+      "python": 85,
+      "fastapi": 80,
+      "ml": 70,
+      "uiux": 30
+    },
+    "goal": "Build an AI teammate finder",
+    "location": "Bengaluru",
+    "interests": ["hackathon", "mock_interview", "backend"],
+    "mock_interview": {
+      "enabled": true,
+      "target_role": "Backend Engineer",
+      "experience_level": "intermediate",
+      "focus_areas": ["python", "fastapi", "system design"]
+    }
+  },
+  {
+    "id": 2,
+    "name": "Diya",
+    "skills": {
+      "python": 60,
+      "fastapi": 65,
+      "ml": 45,
+      "uiux": 85
+    },
+    "goal": "Build an AI teammate finder",
+    "location": "Bengaluru",
+    "interests": ["mock_interview", "product", "uiux"],
+    "mock_interview": {
+      "enabled": true,
+      "target_role": "Backend Engineer",
+      "experience_level": "intermediate",
+      "focus_areas": ["fastapi", "apis", "behavioral"]
+    }
+  },
+  {
+    "id": 3,
+    "name": "Rohan",
+    "skills": {
+      "python": 78,
+      "fastapi": 55,
+      "ml": 88,
+      "uiux": 20
+    },
+    "goal": "Launch a healthcare analytics app",
+    "location": "Mumbai",
+    "interests": ["ml", "mock_interview", "data"],
+    "mock_interview": {
+      "enabled": true,
+      "target_role": "ML Engineer",
+      "experience_level": "advanced",
+      "focus_areas": ["ml", "python", "statistics"]
+    }
+  },
+  {
+    "id": 4,
+    "name": "Meera",
+    "skills": {
+      "python": 40,
+      "fastapi": 35,
+      "ml": 25,
+      "uiux": 92
+    },
+    "goal": "Build an AI teammate finder",
+    "location": "Delhi",
+    "interests": ["design", "frontend"],
+    "mock_interview": {
+      "enabled": false,
+      "target_role": "Product Designer",
+      "experience_level": "intermediate",
+      "focus_areas": ["uiux", "portfolio", "case study"]
+    }
+  },
+  {
+    "id": 5,
+    "name": "Kabir",
+    "skills": {
+      "python": 90,
+      "fastapi": 72,
+      "ml": 82,
+      "uiux": 40
+    },
+    "goal": "Build an AI teammate finder",
+    "location": "Bengaluru",
+    "interests": ["mock_interview", "backend", "ml"],
+    "mock_interview": {
+      "enabled": true,
+      "target_role": "Backend Engineer",
+      "experience_level": "advanced",
+      "focus_areas": ["python", "system design", "databases"]
+    }
+  },
+  {
+    "id": 6,
+    "name": "Ananya",
+    "skills": {
+      "python": 55,
+      "fastapi": 48,
+      "ml": 62,
+      "uiux": 76
+    },
+    "goal": "Create a student collaboration platform",
+    "location": "Chennai",
+    "interests": ["students", "product", "mock_interview"],
+    "mock_interview": {
+      "enabled": true,
+      "target_role": "Full Stack Developer",
+      "experience_level": "beginner",
+      "focus_areas": ["javascript", "apis", "communication"]
+    }
+  }
+]
