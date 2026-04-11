@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 
 import { updateCollaborationProfile } from '../lib/api';
+import { BRANCH_OPTIONS, getJobRolesForBranch } from '../data/careerPaths';
 import { readCurrentUser, readRegisteredUsers, saveCurrentUser, saveRegisteredUsers } from '../lib/currentUser';
 
 const toSkillList = (skills) => {
@@ -46,6 +47,12 @@ const ProfilePage = ({ theme }) => {
     location: currentUser?.location || '',
     college: currentUser?.college || '',
     domain: currentUser?.domain || 'Backend',
+    branch: currentUser?.branch || '',
+    job_role:
+      currentUser?.job_role ||
+      currentUser?.mock_interview?.target_role ||
+      getJobRolesForBranch(currentUser?.branch || '')[0] ||
+      '',
     skills: toSkillList(currentUser?.collaboration_skills || currentUser?.skills),
     interests: currentUser?.interests || [],
     bio: currentUser?.bio || '',
@@ -109,6 +116,16 @@ const ProfilePage = ({ theme }) => {
     setFormData((current) => ({ ...current, [name]: value }));
   };
 
+  const handleBranchChange = (event) => {
+    const branch = event.target.value;
+    const suggestedRoles = getJobRolesForBranch(branch);
+    setFormData((current) => ({
+      ...current,
+      branch,
+      job_role: suggestedRoles.includes(current.job_role) ? current.job_role : suggestedRoles[0] || '',
+    }));
+  };
+
   const handleSkillAdd = () => {
     if (!skillInput.name.trim()) {
       return;
@@ -166,6 +183,13 @@ const ProfilePage = ({ theme }) => {
         user_id: formData.user_id || currentUser?.id || 1,
         portfolio_photo_url: profileImagePreview || '',
         portfolio_banner_url: bannerImagePreview || '',
+        mock_interview: {
+          ...(currentUser?.mock_interview || {}),
+          enabled: true,
+          target_role: formData.job_role || currentUser?.mock_interview?.target_role || 'Software Engineer',
+          experience_level: currentUser?.mock_interview?.experience_level || 'beginner',
+          focus_areas: currentUser?.mock_interview?.focus_areas || [],
+        },
       };
 
       const response = await updateCollaborationProfile(submitData.user_id, submitData);
@@ -180,6 +204,8 @@ const ProfilePage = ({ theme }) => {
         ...submitData,
         name: submitData.username,
         collaboration_skills: submitData.skills,
+        branch: submitData.branch,
+        job_role: submitData.job_role,
       });
 
       const updatedUser = {
@@ -188,6 +214,8 @@ const ProfilePage = ({ theme }) => {
         ...submitData,
         name: submitData.username,
         collaboration_skills: submitData.skills,
+        branch: submitData.branch,
+        job_role: submitData.job_role,
       };
 
       const registeredUsers = readRegisteredUsers();
@@ -297,6 +325,33 @@ const ProfilePage = ({ theme }) => {
                       <input name="college" value={formData.college} onChange={handleInputChange} className={inputClass} />
                     </label>
                     <label className="space-y-2 sm:col-span-2">
+                      <span className="text-sm font-semibold">Branch</span>
+                      <select name="branch" value={formData.branch} onChange={handleBranchChange} className={inputClass}>
+                        <option value="">Select branch</option>
+                        {BRANCH_OPTIONS.map((branch) => (
+                          <option key={branch} value={branch}>{branch}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="space-y-2 sm:col-span-2">
+                      <span className="text-sm font-semibold">Target Job Role</span>
+                      <select
+                        name="job_role"
+                        value={formData.job_role}
+                        onChange={handleInputChange}
+                        className={inputClass}
+                        disabled={!formData.branch}
+                      >
+                        <option value="">{formData.branch ? 'Select a role' : 'Choose a branch first'}</option>
+                        {getJobRolesForBranch(formData.branch).map((role) => (
+                          <option key={role} value={role}>{role}</option>
+                        ))}
+                      </select>
+                      <p className={`text-xs ${isDark ? 'text-emerald-100/55' : 'text-slate-500'}`}>
+                        We suggest roles based on your branch, and you can pick the one that fits best.
+                      </p>
+                    </label>
+                    <label className="space-y-2 sm:col-span-2">
                       <span className="text-sm font-semibold">Domain</span>
                       <select name="domain" value={formData.domain} onChange={handleInputChange} className={inputClass}>
                         {domains.map((domain) => (
@@ -395,6 +450,16 @@ const ProfilePage = ({ theme }) => {
                     This profile is used by recommendations and your navbar profile menu.
                   </p>
                   <div className="mt-5 flex flex-wrap gap-2">
+                    {formData.branch ? (
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isDark ? 'bg-white/10 text-emerald-100' : 'bg-emerald-50 text-emerald-700'}`}>
+                        {formData.branch}
+                      </span>
+                    ) : null}
+                    {formData.job_role ? (
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isDark ? 'bg-white/10 text-emerald-100' : 'bg-emerald-50 text-emerald-700'}`}>
+                        {formData.job_role}
+                      </span>
+                    ) : null}
                     {formData.skills.slice(0, 4).map((skill) => (
                       <span key={skill.name} className={`rounded-full px-3 py-1 text-xs font-semibold ${isDark ? 'bg-white/10 text-emerald-100' : 'bg-emerald-50 text-emerald-700'}`}>
                         {skill.name} · {skill.level}

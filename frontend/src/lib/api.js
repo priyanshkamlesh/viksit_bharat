@@ -126,6 +126,13 @@ export function fetchFullRoadmap(skill, level) {
   });
 }
 
+export function fetchJobRoleSpecializations(role) {
+  return request('/job-role-types', {
+    method: 'POST',
+    body: JSON.stringify({ role }),
+  });
+}
+
 export function fetchTechnologyGraph(userId, selectedSkills) {
   return request('/technology/graph', {
     method: 'POST',

@@ -109,6 +109,8 @@ class CollaborationProfileRequest(BaseModel):
     location: str = ""
     college: str = ""
     domain: str = "Backend"
+    branch: str = ""
+    job_role: str = ""
     skills: List[dict] = Field(default_factory=list)
     interests: List[str] = Field(default_factory=list)
     bio: str = ""

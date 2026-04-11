@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { FaArrowRight, FaCode, FaInbox, FaMicrophoneAlt, FaMoon, FaSignOutAlt, FaSun, FaSyncAlt, FaUserCircle, FaUsers } from 'react-icons/fa';
+import { FaArrowRight, FaBriefcase, FaCode, FaInbox, FaMicrophoneAlt, FaMoon, FaSignOutAlt, FaSun, FaSyncAlt, FaUserCircle, FaUsers } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { fetchBackendHealth, fetchUserNotifications } from '../lib/api';
 import { clearCurrentUser, readCurrentUser } from '../lib/currentUser';
@@ -206,7 +206,7 @@ const Home = ({ theme, setTheme }) => {
               </h2>
             </div>
 
-            <div className="mx-auto mt-8 grid max-w-6xl gap-5 lg:grid-cols-3">
+            <div className="mx-auto mt-8 grid max-w-6xl gap-5 lg:grid-cols-4">
               <button type="button" onClick={() => navigate('/tech')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
                   <FaCode className="text-xl" />
@@ -216,6 +216,20 @@ const Home = ({ theme, setTheme }) => {
                   Practice technical concepts, coding preparation, tools, frameworks, and role-specific problem solving.
                 </p>
                 <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                  Explore track
+                  <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+                </div>
+              </button>
+
+              <button type="button" onClick={() => navigate('/job-roles')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
+                <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-violet-400/10 text-violet-300' : 'bg-violet-100 text-violet-700'}`}>
+                  <FaBriefcase className="text-xl" />
+                </div>
+                <h3 className="text-xl font-black">Job Roles</h3>
+                <p className={`mt-3 text-sm leading-6 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                  Choose your branch and pick the job profile you want to target so your account stays aligned.
+                </p>
+                <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-violet-300' : 'text-violet-700'}`}>
                   Explore track
                   <FaArrowRight className="transition-transform group-hover:translate-x-1" />
                 </div>

@@ -16,6 +16,132 @@ from backend.services import (
     seed_users_if_needed,
 )
 
+BRANCH_JOB_ROLES = {
+    "Computer Science Engineering": [
+        "Software Engineer",
+        "Backend Engineer",
+        "Full Stack Developer",
+        "QA Engineer",
+        "System Engineer",
+        "DevOps Engineer",
+        "Platform Engineer",
+        "Frontend Engineer",
+        "Software Architect",
+    ],
+    "Information Technology": [
+        "Software Engineer",
+        "DevOps Engineer",
+        "Cloud Engineer",
+        "Data Analyst",
+        "System Analyst",
+        "Support Engineer",
+        "Infrastructure Engineer",
+        "Network Engineer",
+        "Database Administrator",
+    ],
+    "Electronics and Communication": [
+        "Embedded Systems Engineer",
+        "IoT Engineer",
+        "Hardware Engineer",
+        "Systems Engineer",
+        "VLSI Engineer",
+        "Firmware Engineer",
+        "Telecom Engineer",
+        "Signal Processing Engineer",
+        "RF Engineer",
+    ],
+    "Electrical": [
+        "Electrical Engineer",
+        "Power Systems Engineer",
+        "Automation Engineer",
+        "Control Systems Engineer",
+        "Instrumentation Engineer",
+        "Maintenance Engineer",
+        "Energy Engineer",
+        "Design Engineer",
+        "Testing Engineer",
+    ],
+    "Mechanical": [
+        "Mechanical Engineer",
+        "CAD Engineer",
+        "Manufacturing Engineer",
+        "Product Design Engineer",
+        "Design Engineer",
+        "Production Engineer",
+        "Quality Engineer",
+        "Thermal Engineer",
+        "R&D Engineer",
+    ],
+    "Civil": [
+        "Site Engineer",
+        "Structural Engineer",
+        "BIM Engineer",
+        "Project Engineer",
+        "Estimation Engineer",
+        "Quantity Surveyor",
+        "Planning Engineer",
+        "Construction Manager",
+        "Survey Engineer",
+    ],
+    "AI / ML": [
+        "Machine Learning Engineer",
+        "AI Engineer",
+        "Data Scientist",
+        "MLOps Engineer",
+        "NLP Engineer",
+        "Computer Vision Engineer",
+        "Research Scientist",
+        "Applied Scientist",
+        "Prompt Engineer",
+    ],
+    "Data Science": [
+        "Data Analyst",
+        "Data Engineer",
+        "Business Intelligence Analyst",
+        "Machine Learning Engineer",
+        "Data Architect",
+        "Analytics Engineer",
+        "Statistician",
+        "Data Consultant",
+        "Business Analyst",
+    ],
+    "Design": [
+        "UI/UX Designer",
+        "Product Designer",
+        "Visual Designer",
+        "Interaction Designer",
+        "Graphic Designer",
+        "Motion Designer",
+        "Design Researcher",
+        "UX Writer",
+        "Brand Designer",
+    ],
+    "Management": [
+        "Business Analyst",
+        "Product Manager",
+        "Operations Analyst",
+        "Project Coordinator",
+        "Program Manager",
+        "Product Owner",
+        "Strategy Analyst",
+        "Operations Manager",
+        "Business Consultant",
+    ],
+}
+
+
+def _roles_for_branch(branch):
+    return BRANCH_JOB_ROLES.get(branch or "", [])
+
+
+def _resolve_job_role(branch, job_role):
+    roles = _roles_for_branch(branch)
+    if job_role and job_role in roles:
+        return job_role
+    if roles:
+        return roles[0]
+    return job_role or "Software Engineer"
+
 
 def load_users():
     seed_users_if_needed()
@@ -57,6 +183,8 @@ def _normalize_target_user(target_user):
         "email": target_user.get("email"),
         "goal": target_user.get("goal", ""),
         "location": target_user.get("location", ""),
+        "branch": target_user.get("branch", ""),
+        "job_role": target_user.get("job_role", ""),
         "interests": target_user.get("interests", []),
         "skills": skills,
         "mock_interview": target_user.get("mock_interview", {}),
@@ -76,6 +204,8 @@ def _normalize_user_record(user):
         "email": user.get("email", ""),
         "college": collaboration_profile.get("college", user.get("college", "")),
         "domain": collaboration_profile.get("domain", user.get("domain", "")),
+        "branch": collaboration_profile.get("branch", user.get("branch", "")),
+        "job_role": collaboration_profile.get("job_role", user.get("job_role", "")),
         "portfolio_photo_url": collaboration_profile.get("portfolio_photo_url", user.get("portfolio_photo_url", "")),
         "portfolio_banner_url": collaboration_profile.get("portfolio_banner_url", user.get("portfolio_banner_url", "")),
         "bio": collaboration_profile.get("bio", user.get("bio", "")),
@@ -107,15 +237,18 @@ def _merge_profile_into_user(user, profile):
     user["linkedin_url"] = profile.get("linkedin_url", user.get("linkedin_url", ""))
     user["portfolio_photo_url"] = profile.get("portfolio_photo_url", user.get("portfolio_photo_url", ""))
     user["portfolio_banner_url"] = profile.get("portfolio_banner_url", user.get("portfolio_banner_url", ""))
+    user["branch"] = profile.get("branch", user.get("branch", ""))
+    user["job_role"] = _resolve_job_role(user["branch"], profile.get("job_role", user.get("job_role", "")))
     user["collaboration_skills"] = collaboration_skills
     user["skills"] = _normalize_skill_map(collaboration_skills) or user.get("skills", {})
     user["goal"] = user.get("goal") or f"Grow from {user.get('college', 'college')} into a job-ready profile"
     user["mock_interview"] = user.get("mock_interview", {
         "enabled": True,
-        "target_role": "Software Engineer",
+        "target_role": user["job_role"] or "Software Engineer",
         "experience_level": "beginner",
         "focus_areas": [],
     })
+    user["mock_interview"]["target_role"] = user["job_role"] or user["mock_interview"].get("target_role", "Software Engineer")
     return user
 
 
@@ -133,9 +266,11 @@ def get_or_create_user_from_registration(payload):
         existing["goal"] = payload.get("education") or existing.get("goal") or "Build a job-ready profile"
         existing["location"] = (payload.get("residence") or existing.get("location") or "").strip()
         existing["skills"] = skills_map or existing.get("skills", {})
+        existing["branch"] = payload.get("branch", existing.get("branch", ""))
+        existing["job_role"] = _resolve_job_role(existing.get("branch", ""), payload.get("job_role", existing.get("job_role", "")))
         existing["mock_interview"] = {
             "enabled": True,
-            "target_role": "Software Engineer",
+            "target_role": existing["job_role"] or "Software Engineer",
             "experience_level": "beginner",
             "focus_areas": list(existing.get("skills", {}).keys())[:4],
         }
@@ -149,9 +284,11 @@ def get_or_create_user_from_registration(payload):
         "location": (payload.get("residence") or "").strip(),
         "interests": ["career-growth", "collaboration"],
         "skills": skills_map,
+        "branch": payload.get("branch", ""),
+        "job_role": _resolve_job_role(payload.get("branch", ""), payload.get("job_role", "")),
         "mock_interview": {
             "enabled": True,
-            "target_role": "Software Engineer",
+            "target_role": _resolve_job_role(payload.get("branch", ""), payload.get("job_role", "")),
             "experience_level": "beginner",
             "focus_areas": list(skills_map.keys())[:4],
         },
@@ -193,12 +330,15 @@ def get_or_create_user_from_oauth_profile(profile):
         existing_user["oauth_avatar_url"] = avatar_url or existing_user.get("oauth_avatar_url", "")
         existing_user["oauth_profile_url"] = profile_url or existing_user.get("oauth_profile_url", "")
         existing_user["goal"] = existing_user.get("goal") or "Build a job-ready profile"
+        existing_user["branch"] = existing_user.get("branch", "")
+        existing_user["job_role"] = _resolve_job_role(existing_user.get("branch", ""), existing_user.get("job_role", ""))
         existing_user["mock_interview"] = existing_user.get("mock_interview", {
             "enabled": True,
-            "target_role": "Software Engineer",
+            "target_role": existing_user["job_role"] or "Software Engineer",
             "experience_level": "beginner",
             "focus_areas": list(existing_user.get("skills", {}).keys())[:4],
         })
+        existing_user["mock_interview"]["target_role"] = existing_user["job_role"] or existing_user["mock_interview"].get("target_role", "Software Engineer")
         return save_user(existing_user)
 
     user = {
@@ -209,6 +349,8 @@ def get_or_create_user_from_oauth_profile(profile):
         "location": "",
         "interests": ["career-growth", "collaboration"],
         "skills": {},
+        "branch": "",
+        "job_role": "Software Engineer",
         "oauth_provider": provider,
         "oauth_provider_id": provider_user_id,
         "oauth_avatar_url": avatar_url,
@@ -233,6 +375,8 @@ def save_collaboration_profile(payload):
         "location": (payload.get("location") or "").strip(),
         "college": (payload.get("college") or "").strip(),
         "domain": payload.get("domain", "Backend"),
+        "branch": (payload.get("branch") or "").strip(),
+        "job_role": (payload.get("job_role") or "").strip(),
         "skills": payload.get("skills", []),
         "interests": payload.get("interests", []),
         "bio": (payload.get("bio") or "").strip(),
@@ -244,6 +388,7 @@ def save_collaboration_profile(payload):
     if existing_user:
         merged_user = _merge_profile_into_user(existing_user, profile)
     else:
+        resolved_job_role = _resolve_job_role(profile["branch"], profile["job_role"])
         merged_user = {
             "id": profile["user_id"],
             "name": profile["username"] or "New User",
@@ -252,9 +397,11 @@ def save_collaboration_profile(payload):
             "location": profile["location"],
             "interests": profile["interests"],
             "skills": _normalize_skill_map(profile["skills"]),
+            "branch": profile["branch"],
+            "job_role": resolved_job_role,
             "mock_interview": {
                 "enabled": True,
-                "target_role": profile["domain"] or "Software Engineer",
+                "target_role": resolved_job_role,
                 "experience_level": "beginner",
                 "focus_areas": list(_normalize_skill_map(profile["skills"]).keys())[:4],
             },
@@ -270,6 +417,8 @@ def save_collaboration_profile(payload):
         "location": profile["location"],
         "college": profile["college"],
         "domain": profile["domain"],
+        "branch": profile["branch"],
+        "job_role": merged_user.get("job_role", profile["job_role"]),
         "skills": profile["skills"],
         "interests": profile["interests"],
         "bio": profile["bio"],

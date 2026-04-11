@@ -22,6 +22,8 @@ import DashboardPage from './pages/DashboardPage'
 import InboxPage from './pages/InboxPage'
 import OAuthCallback from './pages/OAuthCallback'
 import TechTrackPage from './pages/TechTrackPage'
+import JobRolePage from './pages/JobRolePage'
+import JobRoleTypesPage from './pages/JobRoleTypesPage'
 import CommunicationSkillsPage from './pages/CommunicationSkillsPage'
 import InterpersonalSkillsPage from './pages/InterpersonalSkillsPage'
 import { readCurrentUser } from './lib/currentUser'
@@ -76,6 +78,8 @@ const App = () => {
         <Route path='/profile' element={<ProtectedRoute element={<ProfilePage theme={theme} setTheme={setTheme} />} />} />
         <Route path='/collaboration-profile' element={<ProtectedRoute element={<ProfilePage theme={theme} setTheme={setTheme} />} />} />
         <Route path='/home' element={<ProtectedRoute element={<Home theme={theme} setTheme={setTheme} />} />} />
+        <Route path='/job-roles' element={<ProtectedRoute element={<JobRolePage theme={theme} setTheme={setTheme} />} />} />
+        <Route path='/job-roles/types' element={<ProtectedRoute element={<JobRoleTypesPage theme={theme} setTheme={setTheme} />} />} />
         <Route path='/dashboard' element={<ProtectedRoute element={<DashboardPage theme={theme} setTheme={setTheme} />} />} />
         <Route path='/inbox' element={<ProtectedRoute element={<InboxPage theme={theme} setTheme={setTheme} />} />} />
         <Route path='/tech' element={<ProtectedRoute element={<TechPage theme={theme} setTheme={setTheme} />} />} />
