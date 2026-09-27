@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { FaArrowRight, FaBriefcase, FaCode, FaInbox, FaMicrophoneAlt, FaMoon, FaSignOutAlt, FaSun, FaSyncAlt, FaUserCircle, FaUsers } from 'react-icons/fa';
+import { FaArrowRight, FaBriefcase, FaFileAlt, FaInbox, FaMicrophoneAlt, FaMoon, FaSignOutAlt, FaSun, FaSyncAlt, FaUserCheck, FaUserCircle, FaUsers } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { fetchBackendHealth, fetchUserNotifications } from '../lib/api';
 import { clearCurrentUser, readCurrentUser } from '../lib/currentUser';
@@ -116,19 +116,19 @@ const Home = ({ theme, setTheme }) => {
   };
 
   return (
-    <div className={`h-dvh w-full overflow-hidden transition-colors duration-500 ${isDark ? 'bg-[#050f0a] text-white' : 'bg-[#f0fdf4] text-slate-900'}`}>
+    <div className={`min-h-dvh w-full overflow-y-auto transition-colors duration-500 ${isDark ? 'bg-[#050f0a] text-white' : 'bg-[#f0fdf4] text-slate-900'}`}>
       <div
-        className={`mx-auto flex h-dvh w-full max-w-7xl flex-col px-5 py-5 transition-all duration-700 sm:px-8 ${
+        className={`mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 py-5 transition-all duration-700 sm:px-8 sm:py-6 ${
           isReady ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
         }`}
       >
-        <nav className={`flex items-center justify-between rounded-full px-5 py-4 backdrop-blur-2xl ${isDark ? 'border border-emerald-500/15 bg-white/5' : 'border border-white/70 bg-white/75'}`}>
+        <nav className={`flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] px-5 py-4 backdrop-blur-2xl sm:rounded-full ${isDark ? 'border border-emerald-500/15 bg-white/5' : 'border border-white/70 bg-white/75'}`}>
           <div>
             <p className={`text-xs font-bold uppercase tracking-[0.35em] ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>SkillNet</p>
             <h1 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Career Prep Hub</h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <button
               type="button"
               onClick={toggleTheme}
@@ -197,31 +197,17 @@ const Home = ({ theme, setTheme }) => {
           </div>
         </nav>
 
-        <main className="flex flex-1 items-center justify-center py-6">
+        <main className="flex flex-1 items-start justify-center py-10 sm:py-12">
           <div className="w-full">
-            <div className="mx-auto max-w-3xl text-center">
+            <div className="mx-auto max-w-4xl text-center">
               <p className={`text-xs font-bold uppercase tracking-[0.35em] ${isDark ? 'text-emerald-300/80' : 'text-emerald-700'}`}>Choose Your Track</p>
-              <h2 className={`mt-3 text-3xl font-black tracking-tight sm:text-4xl ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <h2 className={`mt-3 text-3xl font-black tracking-tight sm:text-5xl ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 Start building the skills that move you forward.
               </h2>
             </div>
 
-            <div className="mx-auto mt-8 grid max-w-6xl gap-5 lg:grid-cols-4">
-              <button type="button" onClick={() => navigate('/tech')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
-                <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
-                  <FaCode className="text-xl" />
-                </div>
-                <h3 className="text-xl font-black">Technology Skills</h3>
-                <p className={`mt-3 text-sm leading-6 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
-                  Practice technical concepts, coding preparation, tools, frameworks, and role-specific problem solving.
-                </p>
-                <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
-                  Explore track
-                  <FaArrowRight className="transition-transform group-hover:translate-x-1" />
-                </div>
-              </button>
-
-              <button type="button" onClick={() => navigate('/job-roles')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
+            <div className="mx-auto mt-10 grid max-w-6xl gap-6 lg:grid-cols-3">
+              <button type="button" onClick={() => navigate('/job-roles')} className={`group rounded-[2rem] p-7 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-violet-400/10 text-violet-300' : 'bg-violet-100 text-violet-700'}`}>
                   <FaBriefcase className="text-xl" />
                 </div>
@@ -235,13 +221,13 @@ const Home = ({ theme, setTheme }) => {
                 </div>
               </button>
 
-              <button type="button" onClick={() => navigate('/interview')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
+              <button type="button" onClick={() => navigate('/interview')} className={`group rounded-[2rem] p-7 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-amber-400/10 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
                   <FaMicrophoneAlt className="text-xl" />
                 </div>
                 <h3 className="text-xl font-black">Interview Skills</h3>
                 <p className={`mt-3 text-sm leading-6 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
-                  Prepare communication, confidence, mock interviews, Interpersonal Skills, and structured answer delivery.
+                  Prepare confidence, mock interviews, and structured answer delivery.
                 </p>
                 <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
                   Explore track
@@ -249,7 +235,37 @@ const Home = ({ theme, setTheme }) => {
                 </div>
               </button>
 
-              <button type="button" onClick={() => navigate('/recommendations')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
+              <button type="button" onClick={() => navigate('/resume')} className={`group rounded-[2rem] p-7 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
+                <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-rose-400/10 text-rose-300' : 'bg-rose-100 text-rose-700'}`}>
+                  <FaFileAlt className="text-xl" />
+                </div>
+                <h3 className="text-xl font-black">Resume</h3>
+                <p className={`mt-3 text-sm leading-6 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                  Build and refine a resume that presents your profile, skills, projects, and goals clearly.
+                </p>
+                <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-rose-300' : 'text-rose-700'}`}>
+                  Explore track
+                  <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+                </div>
+              </button>
+            </div>
+
+            <div className="mx-auto mt-8 grid max-w-5xl gap-6 md:grid-cols-2">
+              <button type="button" onClick={() => navigate('/interview/mock')} className={`group rounded-[2rem] p-7 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
+                <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-fuchsia-400/10 text-fuchsia-300' : 'bg-fuchsia-100 text-fuchsia-700'}`}>
+                  <FaUserCheck className="text-xl" />
+                </div>
+                <h3 className="text-xl font-black">Mock Interview</h3>
+                <p className={`mt-3 text-sm leading-6 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                  Practice with AI or peers, record answers, and get feedback for your target role.
+                </p>
+                <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-fuchsia-300' : 'text-fuchsia-700'}`}>
+                  Start practice
+                  <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+                </div>
+              </button>
+
+              <button type="button" onClick={() => navigate('/recommendations')} className={`group rounded-[2rem] p-7 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-sky-400/10 text-sky-300' : 'bg-sky-100 text-sky-700'}`}>
                   <FaUsers className="text-xl" />
                 </div>
@@ -264,7 +280,7 @@ const Home = ({ theme, setTheme }) => {
               </button>
             </div>
 
-            <div className="mx-auto mt-7 max-w-3xl text-center">
+            <div className="mx-auto mt-10 max-w-3xl text-center">
 
               <p className={`text-sm leading-7 sm:text-base ${isDark ? 'text-emerald-50/75' : 'text-slate-600'}`}>
                 Every strong career starts with one clear step. Choose your lane, stay consistent, and let your growth

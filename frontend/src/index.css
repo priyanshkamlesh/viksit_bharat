@@ -41,6 +41,10 @@ button:disabled,
   cursor: not-allowed;
 }
 
+body nav:not([aria-label="Primary navigation"]) {
+  display: none;
+}
+
 ::selection {
   background: rgba(16, 185, 129, 0.22);
   color: inherit;

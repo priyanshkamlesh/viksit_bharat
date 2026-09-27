@@ -1,11 +1,7 @@
-import json
-import os
-import re
 import uuid
 from datetime import datetime
 
 from backend.controllers.recommendation_controller import load_users
-from backend.models.ai_roadmap_model import client as roadmap_ai_client
 from backend.models.interview_model import (
     build_ai_practice_feedback,
     build_feedback,
@@ -17,38 +13,6 @@ from backend.services import get_mock_session, save_mock_session
 
 SESSIONS = {}
 AI_PRACTICE_SESSIONS = {}
-
-STOP_WORDS = {
-    "a",
-    "an",
-    "and",
-    "as",
-    "at",
-    "be",
-    "by",
-    "for",
-    "from",
-    "in",
-    "is",
-    "it",
-    "of",
-    "on",
-    "or",
-    "the",
-    "to",
-    "with",
-    "what",
-    "which",
-    "who",
-    "why",
-    "how",
-    "does",
-    "do",
-    "are",
-    "used",
-    "use",
-}
-
 
 def _find_user(users, user_id):
     return next((user for user in users if user["id"] == user_id), None)
@@ -88,178 +52,6 @@ def _persist_session(session):
 
 def _current_timestamp():
     return datetime.utcnow().isoformat()
-
-
-def _normalize_text(value):
-    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", str(value or "").lower())).strip()
-
-
-def _tokenize(value):
-    return [token for token in _normalize_text(value).split(" ") if token and token not in STOP_WORDS]
-
-
-def _semantic_overlap_score(submitted, candidate):
-    submitted_tokens = set(_tokenize(submitted))
-    candidate_tokens = set(_tokenize(candidate))
-    if not submitted_tokens or not candidate_tokens:
-        return 0.0
-
-    return len(submitted_tokens & candidate_tokens) / max(len(candidate_tokens), 1)
-
-
-def _fallback_grade_mock_test(payload):
-    results = []
-
-    for question in payload.questions:
-        submitted = str(question.submitted or "").strip()
-        expected = str(question.answer or "").strip()
-        accepted_answers = [expected, *(question.acceptedAnswers or [])]
-
-        if not submitted:
-            results.append(
-                {
-                    "id": question.id,
-                    "submitted": submitted,
-                    "expected": expected,
-                    "isCorrect": False,
-                    "matched_answer": "",
-                    "explanation": "Answer is required.",
-                }
-            )
-            continue
-
-        best_match = ""
-        best_score = 0.0
-        for candidate in accepted_answers:
-            score = _semantic_overlap_score(submitted, candidate)
-            if _normalize_text(submitted) == _normalize_text(candidate):
-                best_match = candidate
-                best_score = 1.0
-                break
-            if score > best_score:
-                best_score = score
-                best_match = candidate
-
-        is_correct = best_score >= 0.55
-        results.append(
-            {
-                "id": question.id,
-                "submitted": submitted,
-                "expected": expected,
-                "isCorrect": is_correct,
-                "matched_answer": best_match,
-                "explanation": "Semantic match accepted." if is_correct else "The answer does not match the expected concept closely enough.",
-            }
-        )
-
-    correct_count = sum(1 for item in results if item["isCorrect"])
-    total = len(results)
-    score = round((correct_count / total) * 100) if total else 0
-
-    return {
-        "grading_mode": "fallback",
-        "correct_count": correct_count,
-        "total": total,
-        "score": score,
-        "results": results,
-    }
-
-
-def _grade_mock_test_with_ai(payload):
-    if not roadmap_ai_client:
-        return _fallback_grade_mock_test(payload)
-
-    prompt = {
-        "skill": payload.skill,
-        "level": payload.level,
-        "instructions": [
-            "Grade each answer semantically, not by exact wording.",
-            "Accept paraphrases and common synonyms if the meaning matches the expected answer.",
-            "Reject unrelated, contradictory, or empty answers.",
-            "Return a JSON object only.",
-        ],
-        "questions": [
-            {
-                "id": question.id,
-                "question": question.question,
-                "expected_answer": question.answer,
-                "accepted_answers": question.acceptedAnswers,
-                "submitted_answer": question.submitted,
-            }
-            for question in payload.questions
-        ],
-        "response_schema": {
-            "results": [
-                {
-                    "id": "string",
-                    "isCorrect": True,
-                    "matched_answer": "string",
-                    "explanation": "string",
-                }
-            ]
-        },
-    }
-
-    try:
-        response = roadmap_ai_client.chat.completions.create(
-            model=os.getenv("OPENAI_GRADING_MODEL", os.getenv("OPENAI_ROADMAP_MODEL", "gpt-4o-mini")),
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a strict but fair mock-test grader. "
-                        "Check meaning, not exact wording. "
-                        "Be concise and return valid JSON only."
-                    ),
-                },
-                {"role": "user", "content": json.dumps(prompt)},
-            ],
-            response_format={"type": "json_object"},
-        )
-        content = response.choices[0].message.content or "{}"
-        payload_data = json.loads(content)
-        ai_results = payload_data.get("results", [])
-
-        normalized_results = []
-        for question in payload.questions:
-            ai_result = next((item for item in ai_results if str(item.get("id")) == str(question.id)), None)
-            if not ai_result:
-                normalized_results.append(
-                    {
-                        "id": question.id,
-                        "submitted": question.submitted,
-                        "expected": question.answer,
-                        "isCorrect": False,
-                        "matched_answer": "",
-                        "explanation": "AI grading failed to return a result for this answer.",
-                    }
-                )
-                continue
-
-            normalized_results.append(
-                {
-                    "id": question.id,
-                    "submitted": question.submitted,
-                    "expected": question.answer,
-                    "isCorrect": bool(ai_result.get("isCorrect")),
-                    "matched_answer": ai_result.get("matched_answer") or "",
-                    "explanation": ai_result.get("explanation") or "",
-                }
-            )
-
-        correct_count = sum(1 for item in normalized_results if item["isCorrect"])
-        total = len(normalized_results)
-        score = round((correct_count / total) * 100) if total else 0
-
-        return {
-            "grading_mode": "ai",
-            "correct_count": correct_count,
-            "total": total,
-            "score": score,
-            "results": normalized_results,
-        }
-    except Exception:
-        return _fallback_grade_mock_test(payload)
 
 
 def _build_session_feedback(session, users):
@@ -575,7 +367,3 @@ def finish_ai_mock_interview(session_id):
         "status": session["status"],
         "feedback": final_feedback,
     }
-
-
-def grade_mock_test_answers(payload):
-    return _grade_mock_test_with_ai(payload)

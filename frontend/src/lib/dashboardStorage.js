@@ -1,4 +1,3 @@
-const MOCK_TEST_HISTORY_KEY = 'mockTestHistory';
 const CONNECTION_HISTORY_KEY = 'connectionHistory';
 
 const buildScopedKey = (baseKey, userId) => `${baseKey}:${userId || 'guest'}`;
@@ -33,25 +32,6 @@ const writeList = (key, value) => {
 
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-export function readMockTestHistory(userId) {
-  return readList(buildScopedKey(MOCK_TEST_HISTORY_KEY, userId)).sort(
-    (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-  );
-}
-
-export function appendMockTestHistory(userId, entry) {
-  const key = buildScopedKey(MOCK_TEST_HISTORY_KEY, userId);
-  const current = readList(key);
-  const record = {
-    id: entry.id || createId(),
-    createdAt: entry.createdAt || new Date().toISOString(),
-    ...entry,
-  };
-
-  writeList(key, [record, ...current]);
-  return record;
-}
-
 export function readConnectionHistory(userId) {
   return readList(buildScopedKey(CONNECTION_HISTORY_KEY, userId)).sort(
     (left, right) => new Date(right.connectedAt).getTime() - new Date(left.connectedAt).getTime(),
@@ -70,4 +50,3 @@ export function recordConnection(userId, entry) {
   writeList(key, [record, ...current]);
   return record;
 }
-

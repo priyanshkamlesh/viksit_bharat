@@ -5,7 +5,6 @@ from backend.controllers.mock_interview_controller import (
     analyze_connected_mock_interview,
     continue_ai_mock_interview,
     connect_mock_interview,
-    grade_mock_test_answers,
     finish_ai_mock_interview,
     get_connected_mock_interview_session,
     list_connected_mock_interview_messages,
@@ -19,7 +18,6 @@ from backend.models.mock_interview_schema import (
     ChatMessageRequest,
     MockInterviewAnalyzeRequest,
     MockInterviewConnectRequest,
-    MockTestGradeRequest,
     MockInterviewTurnRequest,
 )
 
@@ -75,8 +73,3 @@ def continue_ai_practice(payload: AIBotPracticeTurnRequest):
 @router.get("/ai/finish/{session_id}")
 def finish_ai_practice(session_id: str):
     return finish_ai_mock_interview(session_id)
-
-
-@router.post("/mock-test/grade")
-def grade_mock_test(payload: MockTestGradeRequest):
-    return grade_mock_test_answers(payload)

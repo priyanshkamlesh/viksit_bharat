@@ -1,6 +1,7 @@
 import json
 import os
 import secrets
+from typing import Optional
 from urllib.parse import urlencode
 from urllib.request import Request as UrlRequest, urlopen
 
@@ -240,7 +241,7 @@ def google_start():
 
 
 @router.get("/auth/google/callback")
-def google_callback(request: Request, code: str | None = None, state: str | None = None, error: str | None = None):
+def google_callback(request: Request, code: Optional[str] = None, state: Optional[str] = None, error: Optional[str] = None):
     if error:
         return _redirect_error("google", error)
 
@@ -263,7 +264,7 @@ def github_start():
 
 
 @router.get("/auth/github/callback")
-def github_callback(request: Request, code: str | None = None, state: str | None = None, error: str | None = None):
+def github_callback(request: Request, code: Optional[str] = None, state: Optional[str] = None, error: Optional[str] = None):
     if error:
         return _redirect_error("github", error)
 

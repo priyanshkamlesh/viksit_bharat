@@ -2,4 +2,9 @@ fastapi
 uvicorn
 pydantic
 pymongo
+openai
 python-dotenv
+pypdf
+pdfminer.six
+sentence-transformers
+numpy

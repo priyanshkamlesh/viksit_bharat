@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FaEnvelope, FaMoon, FaLock, FaSun, FaGoogle, FaGithub } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { fetchUserByEmail } from '../lib/api';
+import { buildApiUrl, fetchUserByEmail } from '../lib/api';
 import { saveCurrentUser } from '../lib/currentUser';
 
 
@@ -15,6 +15,7 @@ const Login = ({ theme, setTheme }) => {
   });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState('');
 
   const isDark = theme === 'dark';
 
@@ -39,7 +40,7 @@ const Login = ({ theme, setTheme }) => {
       }
 
       saveCurrentUser(response.user);
-      navigate('/home');
+      navigate('/profile');
     } catch (error) {
       setMessage('Unable to sign in right now. Please try again.');
     } finally {
@@ -48,7 +49,9 @@ const Login = ({ theme, setTheme }) => {
   };
 
   const handleSocialLogin = (provider) => {
-    setMessage(`${provider} sign-in will be available soon. Please continue with email for now.`);
+    setMessage('');
+    setSocialLoading(provider);
+    window.location.assign(buildApiUrl(`/auth/${provider}/start`));
   };
 
   const toggleTheme = () => {
@@ -103,21 +106,25 @@ const Login = ({ theme, setTheme }) => {
               <button
                 type="button"
                 onClick={() => handleSocialLogin('google')}
+                disabled={Boolean(socialLoading) || loading}
                 className={socialBtnClass}
               >
-                <FaGoogle className="text-red-500" /> Google
+                <FaGoogle className="text-red-500" />
+                {socialLoading === 'google' ? 'Connecting...' : 'Google'}
               </button>
               <button
                 type="button"
                 onClick={() => handleSocialLogin('github')}
+                disabled={Boolean(socialLoading) || loading}
                 className={socialBtnClass}
               >
-                <FaGithub className={isDark ? "text-white" : "text-slate-900"} /> GitHub
+                <FaGithub className={isDark ? "text-white" : "text-slate-900"} />
+                {socialLoading === 'github' ? 'Connecting...' : 'GitHub'}
               </button>
             </div>
 
             <p className={`-mt-2 mb-8 text-center text-xs ${isDark ? 'text-emerald-100/50' : 'text-slate-500'}`}>
-              Google and GitHub sign-in are coming soon. Email login is ready now.
+              Sign in securely with your Google or GitHub account.
             </p>
 
             {/* Divider */}

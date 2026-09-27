@@ -1,11 +1,25 @@
-# Python
-__pycache__/
-*.pyc
+cat >> .gitignore <<'EOF'
+
+# Python virtual environments
+venv/
 .venv/
-backend/.env
+backend/venv/
+backend/.venv/
+
+# macOS
+.DS_Store
+**/.DS_Store
 
 # Node
 node_modules/
-dist/
+frontend/node_modules/
+frontend/dist/
+EOF
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
 
-# OS
+# Python cache
+__pycache__/
+*.py[cod]

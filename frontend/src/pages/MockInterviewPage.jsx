@@ -49,6 +49,10 @@ const SpeechRecognitionImpl = typeof window !== 'undefined'
   ? window.SpeechRecognition || window.webkitSpeechRecognition
   : null;
 
+const SpeechSynthesisImpl = typeof window !== 'undefined'
+  ? window.speechSynthesis
+  : null;
+
 const MockInterviewPage = ({ theme, setTheme }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -156,6 +160,19 @@ const MockInterviewPage = ({ theme, setTheme }) => {
       { label: 'Final score', value: aiFinalFeedback?.overall_score ?? 'N/A' },
     ];
   }, [aiFinalFeedback?.overall_score, aiRounds.length, aiSession?.status, mode, peerFinalFeedback?.feedback?.length, peerLiveUpdate?.live_feedback?.length, peerSession?.compatibility_score, peerTurns.length]);
+
+  const speakText = (text) => {
+    if (!SpeechSynthesisImpl || !text) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    SpeechSynthesisImpl.speak(utterance);
+  };
+
+  useEffect(() => {
+    const question = aiSession?.current_question || aiSession?.opening_question;
+    if (question) {
+      speakText(question);
+    }
+  }, [aiSession?.current_question, aiSession?.opening_question]);
 
   useEffect(() => {
     let active = true;
@@ -626,10 +643,11 @@ const MockInterviewPage = ({ theme, setTheme }) => {
 
       const currentUser = readCurrentUser();
       if (currentUser?.id) {
+        const partnerId = peerForm.partnerId;
         recordConnection(currentUser.id, {
           sessionId: session.session_id,
-          partnerId: current.partnerId,
-          partnerName: selectedPeerRoster.partner?.name || `User ${current.partnerId}`,
+          partnerId,
+          partnerName: selectedPeerRoster.partner?.name || `User ${partnerId}`,
           mode: 'mock interview',
         });
       }
@@ -953,688 +971,544 @@ const MockInterviewPage = ({ theme, setTheme }) => {
         </nav>
 
         <main className="relative flex flex-1 items-start justify-center py-8">
-          <div className="w-full space-y-6">
+          <div className="w-full max-w-6xl space-y-8">
+            {/* Mode Selection Header */}
             <section className={`relative overflow-hidden rounded-[2rem] p-8 ${cardBase}`}>
               <div className={`pointer-events-none absolute inset-0 ${isDark ? 'opacity-100' : 'opacity-70'}`}>
                 <div className="absolute -right-12 top-0 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl" />
                 <div className="absolute left-1/3 top-1/3 h-40 w-40 rounded-full bg-lime-400/10 blur-3xl" />
               </div>
 
-              <div className="relative flex flex-wrap items-start justify-between gap-6">
-                <div className="max-w-3xl">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <p className={`text-xs font-bold uppercase tracking-[0.35em] ${isDark ? 'text-emerald-300/80' : 'text-emerald-700'}`}>Backend driven workflow</p>
-                    <span className={`rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] ${isDark ? 'bg-emerald-400/10 text-emerald-200 ring-1 ring-emerald-400/20' : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100'}`}>
-                      {sessionModeLabel}
-                    </span>
-                  </div>
-                  <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-                    Run peer mock interviews or practice with the AI bot.
+              <div className="relative">
+                <div className="text-center">
+                  <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
+                    Choose Your Interview Experience
                   </h2>
-                  <p className={`mt-4 max-w-2xl text-base leading-7 ${isDark ? 'text-emerald-50/75' : 'text-slate-600'}`}>
-                    This workspace keeps peer sessions, live chat, voice answers, and AI practice in one place so you can move from invite to conversation without friction.
+                  <p className={`mt-4 text-lg ${isDark ? 'text-emerald-50/75' : 'text-slate-600'}`}>
+                    Practice with AI or connect with peers for realistic interview scenarios
                   </p>
-                  <p className={`mt-3 text-sm font-medium ${isDark ? 'text-emerald-100/65' : 'text-slate-500'}`}>
-                    Voice input is used for answers, and the browser turns your speech into transcript text behind the scenes.
-                  </p>
-
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                    {progressSummary.map((item) => (
-                      <div key={item.label} className={`rounded-2xl px-4 py-3 ${isDark ? 'bg-white/5 ring-1 ring-white/10' : 'bg-white ring-1 ring-emerald-100'}`}>
-                        <p className={`text-[11px] font-bold uppercase tracking-[0.28em] ${isDark ? 'text-emerald-100/55' : 'text-emerald-700/80'}`}>{item.label}</p>
-                        <p className="mt-2 text-xl font-black">{item.value}</p>
-                      </div>
-                    ))}
-                  </div>
                 </div>
 
-                <div className={`relative overflow-hidden rounded-[1.75rem] p-5 ${isDark ? 'bg-white/5 ring-1 ring-white/10' : 'bg-white ring-1 ring-emerald-100'}`}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/10 via-transparent to-lime-400/10" />
-                  <div className="relative grid min-w-[240px] gap-3">
-                    <div className={`rounded-2xl px-4 py-3 ${isDark ? 'bg-black/20' : 'bg-emerald-50/70'}`}>
-                      <p className={`text-[11px] font-black uppercase tracking-[0.28em] ${isDark ? 'text-emerald-100/55' : 'text-emerald-700/80'}`}>Live state</p>
-                      <p className="mt-2 text-lg font-black">{peerSession?.status || aiSession?.status || 'idle'}</p>
+                <div className={`relative mt-8 inline-flex rounded-2xl p-2 mx-auto ${isDark ? 'bg-white/5 ring-1 ring-white/10' : 'bg-emerald-50 ring-1 ring-emerald-100'}`}>
+                  <button
+                    type="button"
+                    onClick={() => setMode('peer')}
+                    className={`flex items-center gap-3 rounded-xl px-6 py-4 text-sm font-bold transition-all ${
+                      mode === 'peer'
+                        ? isDark
+                          ? 'bg-emerald-400 text-[#052414] shadow-lg'
+                          : 'bg-emerald-600 text-white shadow-lg'
+                        : isDark
+                          ? 'text-emerald-100 hover:bg-white/5'
+                          : 'text-emerald-700 hover:bg-emerald-50'
+                    }`}
+                  >
+                    <FaUsers className="text-lg" />
+                    <div className="text-left">
+                      <div className="font-black">Peer Practice</div>
+                      <div className="text-xs opacity-80">Interview each other</div>
                     </div>
-                    <div className={`rounded-2xl px-4 py-3 ${isDark ? 'bg-black/20' : 'bg-emerald-50/70'}`}>
-                      <p className={`text-[11px] font-black uppercase tracking-[0.28em] ${isDark ? 'text-emerald-100/55' : 'text-emerald-700/80'}`}>Pending invites</p>
-                      <p className="mt-2 text-lg font-black">{notificationCount}</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode('ai')}
+                    className={`flex items-center gap-3 rounded-xl px-6 py-4 text-sm font-bold transition-all ${
+                      mode === 'ai'
+                        ? isDark
+                          ? 'bg-emerald-400 text-[#052414] shadow-lg'
+                          : 'bg-emerald-600 text-white shadow-lg'
+                        : isDark
+                          ? 'text-emerald-100 hover:bg-white/5'
+                          : 'text-emerald-700 hover:bg-emerald-50'
+                    }`}
+                  >
+                    <FaRobot className="text-lg" />
+                    <div className="text-left">
+                      <div className="font-black">AI Practice</div>
+                      <div className="text-xs opacity-80">Practice alone</div>
                     </div>
-                    <div className={`rounded-2xl px-4 py-3 ${isDark ? 'bg-black/20' : 'bg-emerald-50/70'}`}>
-                      <p className={`text-[11px] font-black uppercase tracking-[0.28em] ${isDark ? 'text-emerald-100/55' : 'text-emerald-700/80'}`}>Current user</p>
-                      <p className="mt-2 text-lg font-black">{currentUser?.name || 'Not signed in'}</p>
-                    </div>
-                  </div>
+                  </button>
                 </div>
-              </div>
-
-              <div className={`relative mt-6 inline-flex rounded-full p-1 ${isDark ? 'bg-white/5 ring-1 ring-white/10' : 'bg-emerald-50 ring-1 ring-emerald-100'}`}>
-                <button
-                  type="button"
-                  onClick={() => setMode('peer')}
-                  className={`rounded-full px-5 py-2 text-sm font-bold transition-all ${mode === 'peer'
-                    ? isDark
-                      ? 'bg-emerald-400 text-[#052414]'
-                      : 'bg-emerald-600 text-white'
-                    : isDark
-                      ? 'text-emerald-100'
-                      : 'text-emerald-700'
-                  }`}
-                >
-                  Peer Session
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode('ai')}
-                  className={`rounded-full px-5 py-2 text-sm font-bold transition-all ${mode === 'ai'
-                    ? isDark
-                      ? 'bg-emerald-400 text-[#052414]'
-                      : 'bg-emerald-600 text-white'
-                    : isDark
-                      ? 'text-emerald-100'
-                      : 'text-emerald-700'
-                  }`}
-                >
-                  AI Practice
-                </button>
               </div>
             </section>
 
-            <div className="grid gap-6 xl:grid-cols-[0.9fr_1.05fr_1fr]">
-              <section className={`rounded-[2rem] p-6 ${cardBase}`}>
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
+            {/* Main Content Grid */}
+            <div className="grid gap-8 lg:grid-cols-2">
+              {/* Left Column - Setup/Control */}
+              <div className="space-y-6">
+                {mode === 'peer' ? (
+                  /* Peer Interview Setup */
+                  <section className={`rounded-[2rem] p-6 ${cardBase}`}>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? 'bg-fuchsia-400/10 text-fuchsia-300' : 'bg-fuchsia-100 text-fuchsia-700'}`}>
                         <FaUsers />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-black">Interview Roster</h3>
-                        <p className={isDark ? 'text-emerald-50/60' : 'text-slate-600'}>
-                          Enabled users are ready for peer sessions.
+                        <h3 className="text-xl font-black">Peer Interview Setup</h3>
+                        <p className={`text-sm ${isDark ? 'text-emerald-50/60' : 'text-slate-600'}`}>
+                          Connect with another user for mutual practice
                         </p>
                       </div>
                     </div>
-                  </div>
 
-                  <span className={`rounded-full px-3 py-1 text-xs font-black uppercase tracking-[0.2em] ${isDark ? 'bg-white/10 text-emerald-100' : 'bg-emerald-50 text-emerald-700'}`}>
-                    {roster.length} users
-                  </span>
-                </div>
-
-                {rosterLoading ? (
-                  <div className={`mt-6 rounded-2xl p-4 text-sm ${isDark ? 'bg-white/5 text-emerald-50/70' : 'bg-emerald-50/60 text-slate-600'}`}>
-                    Loading interview-ready users from the backend...
-                  </div>
-                ) : null}
-
-                {rosterError ? (
-                  <div className={`mt-4 rounded-2xl px-4 py-3 text-sm font-semibold ${isDark ? 'bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/20' : 'bg-rose-50 text-rose-700 ring-1 ring-rose-100'}`}>
-                    {rosterError}
-                  </div>
-                ) : null}
-
-                <div className="mt-5 space-y-3">
-                  {enabledUsers.map((user) => (
-                    <div key={user.id} className={`rounded-[1.5rem] border p-4 ${isDark ? 'border-white/10 bg-black/10' : 'border-emerald-100 bg-white'}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-base font-black">{user.name}</p>
-                          <p className={`mt-1 text-sm ${isDark ? 'text-emerald-50/65' : 'text-slate-600'}`}>
-                            {user.location || 'Location not set'} {user.goal ? `, ${user.goal}` : ''}
-                          </p>
-                        </div>
-                        <span className={`rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] ${isDark ? 'bg-emerald-400/10 text-emerald-200' : 'bg-emerald-50 text-emerald-700'}`}>
-                          Mock Interview On
-                        </span>
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {(user.interests || []).slice(0, 3).map((interest) => (
-                          <span key={interest} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isDark ? 'bg-white/10 text-emerald-100/75' : 'bg-emerald-50 text-emerald-700'}`}>
-                            {interest}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-2 gap-3">
-                        <button type="button" className={secondaryButtonClass} onClick={() => selectPeerUser(user.id)}>
-                          <FaUsers />
-                          Use in Peer
-                        </button>
-                        <button type="button" className={secondaryButtonClass} onClick={() => selectAiUser(user.id)}>
-                          <FaRobot />
-                          Use in AI
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {!rosterLoading && !enabledUsers.length ? (
-                    <div className={`rounded-2xl border p-5 ${isDark ? 'border-white/10 bg-white/5 text-emerald-100' : 'border-emerald-100 bg-emerald-50/40 text-slate-600'}`}>
-                      No enabled mock interview users were found.
-                    </div>
-                  ) : null}
-                </div>
-              </section>
-
-              {mode === 'peer' ? (
-                <section className={`rounded-[2rem] p-6 ${cardBase}`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? 'bg-fuchsia-400/10 text-fuchsia-300' : 'bg-fuchsia-100 text-fuchsia-700'}`}>
-                      <FaChartLine />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-black">Peer Session Builder</h3>
-                      <p className={isDark ? 'text-emerald-50/65' : 'text-slate-600'}>
-                        Connect two enabled users, record turns, then analyze the transcript.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 grid gap-4 md:grid-cols-2">
-                    <label className="space-y-2">
-                      <span className="text-sm font-bold">Interviewer ID</span>
-                      <input className={inputClass} value={peerForm.userId} onChange={(event) => setPeerForm((current) => ({ ...current, userId: event.target.value }))} />
-                    </label>
-                    <label className="space-y-2">
-                      <span className="text-sm font-bold">Partner ID</span>
-                      <input className={inputClass} value={peerForm.partnerId} onChange={(event) => setPeerForm((current) => ({ ...current, partnerId: event.target.value }))} />
-                    </label>
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <button type="button" onClick={handleConnectSession} className={primaryButtonClass} disabled={peerLoading}>
-                      <FaPlay />
-                      Connect Users
-                    </button>
-                    <button type="button" onClick={swapPeerUsers} className={secondaryButtonClass} disabled={peerLoading}>
-                      <FaSyncAlt />
-                      Swap Roles
-                    </button>
-                    {peerSession ? (
-                      <span className={`rounded-full px-4 py-3 text-sm font-semibold ${isDark ? 'bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/20' : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100'}`}>
-                        Session: {peerSession.session_id}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                    <div className={`rounded-[1.5rem] border p-4 ${isDark ? 'border-white/10 bg-black/10' : 'border-emerald-100 bg-white'}`}>
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-black uppercase tracking-[0.28em]">Interviewer Profile</h4>
-                        <FaUserCircle className={isDark ? 'text-emerald-300' : 'text-emerald-700'} />
-                      </div>
-                      <p className="mt-3 text-lg font-black">{peerDetails.interviewer?.name || selectedPeerRoster.interviewer?.name || 'Select user'}</p>
-                      <p className={`mt-1 text-sm ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
-                        {peerDetails.interviewer?.mock_interview?.target_role || 'Target role not loaded'}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {(peerDetails.interviewer?.mock_interview?.focus_areas || []).slice(0, 4).map((focus) => (
-                          <span key={focus} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isDark ? 'bg-white/10 text-emerald-100/75' : 'bg-emerald-50 text-emerald-700'}`}>
-                            {focus}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className={`rounded-[1.5rem] border p-4 ${isDark ? 'border-white/10 bg-black/10' : 'border-emerald-100 bg-white'}`}>
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-black uppercase tracking-[0.28em]">Responder Profile</h4>
-                        <FaCheckCircle className={isDark ? 'text-emerald-300' : 'text-emerald-700'} />
-                      </div>
-                      <p className="mt-3 text-lg font-black">{peerDetails.partner?.name || selectedPeerRoster.partner?.name || 'Select user'}</p>
-                      <p className={`mt-1 text-sm ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
-                        {peerDetails.partner?.mock_interview?.target_role || 'Target role not loaded'}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {(peerDetails.partner?.mock_interview?.focus_areas || []).slice(0, 4).map((focus) => (
-                          <span key={focus} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isDark ? 'bg-white/10 text-emerald-100/75' : 'bg-emerald-50 text-emerald-700'}`}>
-                            {focus}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 grid gap-4 md:grid-cols-2">
-                    <label className="space-y-2">
-                      <span className="text-sm font-bold">Asker ID</span>
-                      <input className={inputClass} value={peerForm.askerId} onChange={(event) => setPeerForm((current) => ({ ...current, askerId: event.target.value }))} />
-                    </label>
-                    <label className="space-y-2">
-                      <span className="text-sm font-bold">Responder ID</span>
-                      <input className={inputClass} value={peerForm.responderId} onChange={(event) => setPeerForm((current) => ({ ...current, responderId: event.target.value }))} />
-                    </label>
-                    <label className="space-y-2 md:col-span-2">
-                      <span className="text-sm font-bold">Question</span>
-                      <textarea className={inputClass} rows="3" value={peerForm.question} onChange={(event) => setPeerForm((current) => ({ ...current, question: event.target.value }))} />
-                    </label>
-                    <div className="md:col-span-2">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-bold">Answer by voice</span>
-                        <span className={`text-xs font-semibold ${isDark ? 'text-emerald-100/55' : 'text-slate-500'}`}>
-                          {listeningTarget === 'peer' ? 'Listening now' : 'Tap the mic and speak your answer'}
-                        </span>
-                      </div>
-                      <div className={`mt-2 rounded-[1.5rem] border p-4 ${isDark ? 'border-white/10 bg-black/10' : 'border-emerald-100 bg-white'}`}>
-                        <div className="flex flex-wrap items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => startVoiceCapture('peer')}
-                            className={listeningTarget === 'peer' ? primaryButtonClass : secondaryButtonClass}
-                          disabled={!SpeechRecognitionImpl}
+                    {/* User Selection */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold mb-2">Select Interviewer</label>
+                        <select
+                          className={inputClass}
+                          value={peerForm.userId}
+                          onChange={(event) => setPeerForm((current) => ({ ...current, userId: event.target.value }))}
                         >
-                            {listeningTarget === 'peer' ? <FaStop /> : <FaMicrophone />}
-                            {listeningTarget === 'peer' ? 'Stop Recording' : 'Start Recording'}
-                          </button>
-                          <button type="button" onClick={() => clearVoiceAnswer('peer')} className={secondaryButtonClass}>
-                            Clear Answer
-                          </button>
-                        </div>
+                          <option value="">Choose interviewer...</option>
+                          {enabledUsers.map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.name} - {user.mock_interview?.target_role || 'No role set'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                        <div className={`mt-4 rounded-2xl border px-4 py-4 text-sm leading-7 ${isDark ? 'border-white/10 bg-white/5 text-emerald-50/80' : 'border-emerald-100 bg-emerald-50/40 text-slate-700'}`}>
-                          {peerForm.answer?.trim()
-                            ? peerForm.answer
-                            : 'Your spoken answer will appear here as a live transcript.'}
-                        </div>
+                      <div>
+                        <label className="block text-sm font-bold mb-2">Select Interviewee</label>
+                        <select
+                          className={inputClass}
+                          value={peerForm.partnerId}
+                          onChange={(event) => setPeerForm((current) => ({ ...current, partnerId: event.target.value }))}
+                        >
+                          <option value="">Choose interviewee...</option>
+                          {enabledUsers.map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.name} - {user.mock_interview?.target_role || 'No role set'}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
-                  </div>
 
-                  {voiceError ? (
-                    <div className={`mt-5 rounded-2xl px-4 py-3 text-sm font-semibold ${isDark ? 'bg-amber-500/10 text-amber-100 ring-1 ring-amber-400/20' : 'bg-amber-50 text-amber-800 ring-1 ring-amber-100'}`}>
-                      {voiceError}
-                    </div>
-                  ) : null}
-
-                  {peerError ? (
-                    <div className={`mt-5 rounded-2xl px-4 py-3 text-sm font-semibold ${isDark ? 'bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/20' : 'bg-rose-50 text-rose-700 ring-1 ring-rose-100'}`}>
-                      {peerError}
-                    </div>
-                  ) : null}
-
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    <button type="button" onClick={handleRecordTurn} className={primaryButtonClass} disabled={peerLoading || !peerSession}>
-                      Save Turn
-                    </button>
-                    <button type="button" onClick={handleFinishPeerSession} className={secondaryButtonClass} disabled={peerLoading || !peerSession}>
-                      Analyze Session
-                    </button>
-                  </div>
-                </section>
-              ) : (
-                <section className={`rounded-[2rem] p-6 ${cardBase}`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? 'bg-sky-400/10 text-sky-300' : 'bg-sky-100 text-sky-700'}`}>
-                      <FaRobot />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-black">AI Practice Session</h3>
-                      <p className={isDark ? 'text-emerald-50/65' : 'text-slate-600'}>
-                        Start a session, answer the generated question, then finish for summary feedback.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 space-y-4">
-                    <label className="space-y-2">
-                      <span className="text-sm font-bold">User ID</span>
-                      <input className={inputClass} value={aiUserId} onChange={(event) => setAiUserId(event.target.value)} />
-                    </label>
-
-                    <div className="flex flex-wrap gap-3">
-                      <button type="button" onClick={handleStartAiSession} className={primaryButtonClass} disabled={aiLoading}>
+                    {/* Action Buttons */}
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={handleConnectSession}
+                        className={primaryButtonClass}
+                        disabled={peerLoading || !peerForm.userId || !peerForm.partnerId}
+                      >
                         <FaPlay />
-                        Start AI Session
+                        Start Session
                       </button>
-                      {aiSession?.session_id ? (
-                        <span className={`rounded-full px-4 py-3 text-sm font-semibold ${isDark ? 'bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/20' : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100'}`}>
-                          Session: {aiSession.session_id}
+                      {peerSession && (
+                        <span className={`rounded-full px-4 py-2 text-sm font-semibold ${isDark ? 'bg-emerald-500/10 text-emerald-200' : 'bg-emerald-50 text-emerald-700'}`}>
+                          Connected
                         </span>
-                      ) : null}
+                      )}
                     </div>
-
-                    <div className={`rounded-[1.5rem] border p-4 ${isDark ? 'border-white/10 bg-black/10' : 'border-emerald-100 bg-white'}`}>
-                      <div className="flex items-center justify-between gap-3">
-                        <h4 className="text-sm font-black uppercase tracking-[0.28em]">Selected Candidate</h4>
-                        <FaClock className={isDark ? 'text-emerald-300' : 'text-emerald-700'} />
+                  </section>
+                ) : (
+                  /* AI Interview Setup */
+                  <section className={`rounded-[2rem] p-6 ${cardBase}`}>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? 'bg-blue-400/10 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
+                        <FaRobot />
                       </div>
-                      <p className="mt-3 text-lg font-black">{aiUserDetails?.name || 'Choose a user'}</p>
-                      <p className={`mt-1 text-sm ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
-                        {aiUserDetails?.mock_interview?.target_role || 'Target role not loaded'}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {(aiUserDetails?.mock_interview?.focus_areas || []).slice(0, 4).map((focus) => (
-                          <span key={focus} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isDark ? 'bg-white/10 text-emerald-100/75' : 'bg-emerald-50 text-emerald-700'}`}>
-                            {focus}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {aiSession?.opening_question || aiSession?.current_question ? (
-                      <div className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
-                        <p className="text-sm font-black">Current AI Question</p>
-                        <p className={`mt-2 text-sm leading-6 ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>
-                          {aiSession.current_question || aiSession.opening_question}
+                      <div>
+                        <h3 className="text-xl font-black">AI Interview Practice</h3>
+                        <p className={`text-sm ${isDark ? 'text-emerald-50/60' : 'text-slate-600'}`}>
+                          Practice with an AI interviewer tailored to your profile
                         </p>
                       </div>
-                    ) : null}
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-bold">Your Answer by Voice</span>
-                        <span className={`text-xs font-semibold ${isDark ? 'text-emerald-100/55' : 'text-slate-500'}`}>
-                          {listeningTarget === 'ai' ? 'Listening now' : 'Press the mic and answer out loud'}
-                        </span>
-                      </div>
-                      <div className={`rounded-[1.5rem] border p-4 ${isDark ? 'border-white/10 bg-black/10' : 'border-emerald-100 bg-white'}`}>
-                        <div className="flex flex-wrap items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => startVoiceCapture('ai')}
-                            className={listeningTarget === 'ai' ? primaryButtonClass : secondaryButtonClass}
-                            disabled={!SpeechRecognitionImpl}
-                          >
-                            {listeningTarget === 'ai' ? <FaStop /> : <FaMicrophone />}
-                            {listeningTarget === 'ai' ? 'Stop Recording' : 'Start Recording'}
-                          </button>
-                          <button type="button" onClick={() => clearVoiceAnswer('ai')} className={secondaryButtonClass}>
-                            Clear Answer
-                          </button>
-                        </div>
-
-                        <div className={`mt-4 rounded-2xl border px-4 py-4 text-sm leading-7 ${isDark ? 'border-white/10 bg-white/5 text-emerald-50/80' : 'border-emerald-100 bg-emerald-50/40 text-slate-700'}`}>
-                          {aiAnswer?.trim()
-                            ? aiAnswer
-                            : 'Your spoken answer will appear here as a live transcript.'}
-                        </div>
-                      </div>
                     </div>
 
-                    {aiError ? (
-                      <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${isDark ? 'bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/20' : 'bg-rose-50 text-rose-700 ring-1 ring-rose-100'}`}>
-                        {aiError}
+                    {/* AI User Selection */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold mb-2">Select Practice Profile</label>
+                        <select
+                          className={inputClass}
+                          value={aiUserId}
+                          onChange={(event) => setAiUserId(event.target.value)}
+                        >
+                          <option value="1">Choose a profile...</option>
+                          {enabledUsers.map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.name} - {user.mock_interview?.target_role || 'No role set'}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                    ) : null}
 
-                    <div className="flex flex-wrap gap-3">
-                      <button type="button" onClick={handleSubmitAiAnswer} className={primaryButtonClass} disabled={aiLoading || !aiSession}>
-                        Submit Answer
+                      {aiUserDetails && (
+                        <div className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
+                          <div className="flex items-center gap-3 mb-3">
+                            <FaUserCircle className={`text-xl ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`} />
+                            <div>
+                              <p className="font-bold">{aiUserDetails.name}</p>
+                              <p className={`text-sm ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                                Target: {aiUserDetails.mock_interview?.target_role}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {(aiUserDetails.mock_interview?.focus_areas || []).slice(0, 3).map((focus) => (
+                              <span key={focus} className={`rounded-full px-3 py-1 text-xs font-semibold ${isDark ? 'bg-white/10 text-emerald-100' : 'bg-emerald-50 text-emerald-700'}`}>
+                                {focus}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={handleStartAiSession}
+                        className={primaryButtonClass}
+                        disabled={aiLoading || aiUserId === '1'}
+                      >
+                        <FaPlay />
+                        Start AI Interview
                       </button>
-                      <button type="button" onClick={handleFinishAiSession} className={secondaryButtonClass} disabled={aiLoading || !aiSession}>
-                        Finish AI Session
-                      </button>
+                      {aiSession && (
+                        <span className={`rounded-full px-4 py-2 text-sm font-semibold ${isDark ? 'bg-emerald-500/10 text-emerald-200' : 'bg-emerald-50 text-emerald-700'}`}>
+                          In Progress
+                        </span>
+                      )}
+                    </div>
+                  </section>
+                )}
+
+                {/* Interview Roster */}
+                <section className={`rounded-[2rem] p-6 ${cardBase}`}>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
+                        <FaUsers />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black">Available Partners</h3>
+                        <p className={`text-sm ${isDark ? 'text-emerald-50/60' : 'text-slate-600'}`}>
+                          {enabledUsers.length} users ready for practice
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </section>
-              )}
 
-              <section className={`rounded-[2rem] p-6 ${cardBase}`}>
-                <h3 className="text-2xl font-black">
-                  {mode === 'peer' ? 'Peer Transcript and Feedback' : 'AI Round Feedback'}
-                </h3>
-                <p className={`mt-2 text-sm leading-6 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
-                  {mode === 'peer'
-                    ? 'Each saved turn updates the live transcript, and analyzing the session returns feedback for both participants.'
-                    : 'Each answer gets round feedback, and finishing the session returns a summarized practice report.'}
-                </p>
-
-                {mode === 'peer' ? (
-                  <div className="mt-5 space-y-4">
-                    {peerSession ? (
-                      <div className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-black">Session Status</p>
-                            <p className={`mt-1 text-sm ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
-                              {peerSession.status} {sessionPartnerNames ? `- ${sessionPartnerNames}` : ''}
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {enabledUsers.slice(0, 5).map((user) => (
+                      <div key={user.id} className={`rounded-xl border p-3 ${isDark ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-emerald-100 bg-white hover:bg-emerald-50/50'} transition-colors`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="font-bold text-sm">{user.name}</p>
+                            <p className={`text-xs ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                              {user.mock_interview?.target_role || 'Role not set'}
                             </p>
                           </div>
-                          <span className={`rounded-full px-3 py-1 text-xs font-black ${isDark ? 'bg-emerald-400/10 text-emerald-200' : 'bg-emerald-50 text-emerald-700'}`}>
-                            Score {peerSession.compatibility_score}
-                          </span>
-                        </div>
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {(peerSession.match_reasons || []).map((reason) => (
-                            <span key={reason} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isDark ? 'bg-white/10 text-emerald-100/75' : 'bg-white text-slate-600 ring-1 ring-emerald-100'}`}>
-                              {reason}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {peerSession ? (
-                      <div className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-black">Live Chat</p>
-                            <p className={`mt-1 text-sm ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
-                              Messages sync for the accepted connection in near real time.
-                            </p>
-                          </div>
-                          <span className={`rounded-full px-3 py-1 text-xs font-black ${isDark ? 'bg-emerald-400/10 text-emerald-200' : 'bg-emerald-50 text-emerald-700'}`}>
-                            {peerChatMessages.length} messages
-                          </span>
-                        </div>
-
-                        <div className="mt-4 max-h-72 space-y-3 overflow-y-auto pr-1">
-                          {peerChatLoading ? (
-                            <div className={`rounded-2xl border p-3 text-sm ${isDark ? 'border-white/10 bg-white/5 text-emerald-100/70' : 'border-emerald-100 bg-white text-slate-600'}`}>
-                              Loading live chat...
-                            </div>
-                          ) : peerChatMessages.length ? (
-                            peerChatMessages.map((item) => {
-                              const isMine = String(item.sender_id) === String(currentUser?.id || peerChatPartner.local?.id);
-                              return (
-                                <div key={item.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${isMine ? (isDark ? 'bg-emerald-400 text-slate-950' : 'bg-emerald-600 text-white') : (isDark ? 'bg-white/10 text-emerald-50' : 'bg-white text-slate-700 ring-1 ring-emerald-100')}`}>
-                                    <p className="text-[11px] font-black uppercase tracking-[0.2em] opacity-70">
-                                      {isMine ? 'You' : (peerChatPartner.remote?.name || 'Collaborator')}
-                                    </p>
-                                    <p className="mt-1 leading-6">{item.message}</p>
-                                    <p className="mt-2 text-[11px] opacity-60">
-                                      {item.created_at ? new Date(item.created_at).toLocaleTimeString() : ''}
-                                    </p>
-                                  </div>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <div className={`rounded-2xl border p-3 text-sm ${isDark ? 'border-white/10 bg-white/5 text-emerald-100/70' : 'border-emerald-100 bg-white text-slate-600'}`}>
-                              No chat messages yet. Say hello to start the conversation.
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="mt-4 space-y-3">
-                          <textarea
-                            className={inputClass}
-                            rows="3"
-                            value={peerChatDraft}
-                            onChange={(event) => setPeerChatDraft(event.target.value)}
-                            placeholder="Type a message to your collaborator..."
-                          />
-                          {peerChatError ? (
-                            <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${isDark ? 'bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/20' : 'bg-rose-50 text-rose-700 ring-1 ring-rose-100'}`}>
-                              {peerChatError}
-                            </div>
-                          ) : null}
-                          <div className="flex flex-wrap gap-3">
+                          <div className="flex gap-2">
                             <button
                               type="button"
-                              onClick={handleSendPeerChat}
-                              disabled={!peerSession?.session_id || peerChatSending}
-                              className={primaryButtonClass}
+                              onClick={() => selectPeerUser(user.id)}
+                              className={`px-3 py-1 text-xs font-semibold rounded-lg ${isDark ? 'bg-white/10 text-emerald-100 hover:bg-white/20' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'} transition-colors`}
                             >
-                              Send Message
+                              Peer
                             </button>
                             <button
                               type="button"
-                              onClick={() => setPeerChatDraft('')}
+                              onClick={() => selectAiUser(user.id)}
+                              className={`px-3 py-1 text-xs font-semibold rounded-lg ${isDark ? 'bg-white/10 text-emerald-100 hover:bg-white/20' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'} transition-colors`}
+                            >
+                              AI
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {enabledUsers.length > 5 && (
+                      <p className={`text-xs text-center ${isDark ? 'text-emerald-50/50' : 'text-slate-500'}`}>
+                        And {enabledUsers.length - 5} more users...
+                      </p>
+                    )}
+                  </div>
+                </section>
+              </div>
+
+              {/* Right Column - Active Interview */}
+              <div className="space-y-6">
+                {mode === 'peer' && peerSession ? (
+                  /* Active Peer Interview */
+                  <section className={`rounded-[2rem] p-6 ${cardBase}`}>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? 'bg-green-400/10 text-green-300' : 'bg-green-100 text-green-700'}`}>
+                        <FaMicrophone />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-black">Active Interview</h3>
+                        <p className={`text-sm ${isDark ? 'text-emerald-50/60' : 'text-slate-600'}`}>
+                          Take turns asking and answering questions
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Current Turn Input */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold mb-2">Question</label>
+                        <textarea
+                          className={inputClass}
+                          rows="3"
+                          placeholder="Ask your interview question..."
+                          value={peerForm.question}
+                          onChange={(event) => setPeerForm((current) => ({ ...current, question: event.target.value }))}
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-sm font-bold">Your Answer</label>
+                          <span className={`text-xs ${isDark ? 'text-emerald-100/55' : 'text-slate-500'}`}>
+                            {listeningTarget === 'peer' ? '🎤 Listening...' : 'Click mic to speak'}
+                          </span>
+                        </div>
+                        <div className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-black/10' : 'border-emerald-100 bg-white'}`}>
+                          <div className="flex items-center gap-3 mb-3">
+                            <button
+                              type="button"
+                              onClick={() => startVoiceCapture('peer')}
+                              className={listeningTarget === 'peer' ? primaryButtonClass : secondaryButtonClass}
+                              disabled={!SpeechRecognitionImpl}
+                            >
+                              {listeningTarget === 'peer' ? <FaStop /> : <FaMicrophone />}
+                              {listeningTarget === 'peer' ? 'Stop' : 'Record Answer'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => clearVoiceAnswer('peer')}
                               className={secondaryButtonClass}
                             >
                               Clear
                             </button>
                           </div>
+                          <div className={`rounded-xl px-4 py-3 text-sm min-h-[60px] ${isDark ? 'bg-white/5 text-emerald-50' : 'bg-emerald-50/40 text-slate-700'}`}>
+                            {voiceBaseRef.current.peer?.trim() || 'Your spoken answer will appear here...'}
+                          </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className={`rounded-2xl border p-4 text-sm ${isDark ? 'border-white/10 bg-white/5 text-emerald-100/70' : 'border-emerald-100 bg-white text-slate-600'}`}>
-                        Connect users first to unlock the live chat panel.
+                    </div>
+
+                    <div className="mt-6 flex gap-3">
+                      <button
+                        type="button"
+                        onClick={handleRecordTurn}
+                        className={primaryButtonClass}
+                        disabled={!peerForm.question.trim() || !voiceBaseRef.current.peer?.trim()}
+                      >
+                        Submit Turn
+                      </button>
+                    </div>
+                  </section>
+                ) : mode === 'ai' && aiSession ? (
+                  /* Active AI Interview */
+                  <section className={`rounded-[2rem] p-6 ${cardBase}`}>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? 'bg-purple-400/10 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                        <FaRobot />
                       </div>
-                    )}
-
-                    {peerTurns.length ? (
-                      peerTurns.map((turn, index) => (
-                        <article key={`${turn.asker_id}-${index}`} className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
-                          <p className="text-sm font-black">Turn {index + 1}</p>
-                          <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>Q: {turn.question}</p>
-                          <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>A: {turn.answer}</p>
-                        </article>
-                      ))
-                    ) : (
-                      <div className={`rounded-2xl border p-5 ${isDark ? 'border-white/10 bg-white/5 text-emerald-100' : 'border-emerald-100 bg-emerald-50/40 text-slate-600'}`}>
-                        Connect users and save turns to build the transcript here.
+                      <div>
+                        <h3 className="text-xl font-black">AI Interview</h3>
+                        <p className={`text-sm ${isDark ? 'text-emerald-50/60' : 'text-slate-600'}`}>
+                          Answer the AI's questions using voice
+                        </p>
                       </div>
-                    )}
+                    </div>
 
-                    {peerLiveUpdate?.latest_turn ? (
-                      <div className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
-                        <p className="text-sm font-black">Latest Backend Turn</p>
-                        <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>Q: {peerLiveUpdate.latest_turn.question}</p>
-                        <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>A: {peerLiveUpdate.latest_turn.answer}</p>
-                      </div>
-                    ) : null}
-
-                    {peerLiveUpdate?.live_feedback?.length ? (
-                      <div className="space-y-3">
-                        <h4 className="text-lg font-black">Live Feedback</h4>
-                        {peerLiveUpdate.live_feedback.map((item) => (
-                          <article key={item.user_id} className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-white'}`}>
-                            <div className="flex items-center justify-between gap-3">
-                              <div>
-                                <p className="text-lg font-black">{item.user_name}</p>
-                                <p className={`mt-1 text-sm ${isDark ? 'text-emerald-50/65' : 'text-slate-600'}`}>
-                                  Target role: {item.target_role}
-                                </p>
-                              </div>
-                              <span className={`rounded-full px-3 py-1 text-xs font-black ${isDark ? 'bg-emerald-400/10 text-emerald-200' : 'bg-emerald-50 text-emerald-700'}`}>
-                                Score {item.overall_score}
-                              </span>
-                            </div>
-
-                            <div className="mt-4 grid gap-4">
-                              <div>
-                                <p className="text-sm font-bold">Interviewer feedback</p>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  {(item.interviewer_feedback?.strengths || []).map((strength) => (
-                                    <span key={strength} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isDark ? 'bg-white/10 text-emerald-100/75' : 'bg-emerald-50 text-emerald-700'}`}>
-                                      {strength}
-                                    </span>
-                                  ))}
-                                </div>
-                                <div className="mt-2 space-y-1">
-                                  {(item.interviewer_feedback?.improvements || []).map((improvement) => (
-                                    <p key={improvement} className={`text-sm ${isDark ? 'text-emerald-50/75' : 'text-slate-600'}`}>
-                                      {improvement}
-                                    </p>
-                                  ))}
-                                </div>
-                              </div>
-
-                              <div>
-                                <p className="text-sm font-bold">Candidate feedback</p>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  {(item.candidate_feedback?.strengths || []).map((strength) => (
-                                    <span key={strength} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isDark ? 'bg-white/10 text-emerald-100/75' : 'bg-emerald-50 text-emerald-700'}`}>
-                                      {strength}
-                                    </span>
-                                  ))}
-                                </div>
-                                <div className="mt-2 space-y-1">
-                                  {(item.candidate_feedback?.improvements || []).map((improvement) => (
-                                    <p key={improvement} className={`text-sm ${isDark ? 'text-emerald-50/75' : 'text-slate-600'}`}>
-                                      {improvement}
-                                    </p>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </article>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    {peerFinalFeedback?.feedback?.length ? (
-                      <div className="space-y-3">
-                        <h4 className="text-lg font-black">Final Analysis</h4>
-                        {peerFinalFeedback.feedback.map((item) => (
-                          <article key={item.user_id} className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-white'}`}>
-                            <div className="flex items-center justify-between gap-3">
-                              <div>
-                                <p className="text-lg font-black">{item.user_name}</p>
-                                <p className={`mt-1 text-sm ${isDark ? 'text-emerald-50/65' : 'text-slate-600'}`}>
-                                  {item.target_role}
-                                </p>
-                              </div>
-                              <span className={`rounded-full px-3 py-1 text-xs font-black ${isDark ? 'bg-emerald-400/10 text-emerald-200' : 'bg-emerald-50 text-emerald-700'}`}>
-                                Score {item.overall_score}
-                              </span>
-                            </div>
-                          </article>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="mt-5 space-y-4">
-                    {aiRounds.length ? (
-                      aiRounds.map((round) => (
-                        <article key={round.roundNumber} className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
-                          <p className="text-sm font-black">Round {round.roundNumber}</p>
-                          <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>Q: {round.question}</p>
-                          <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>A: {round.answer}</p>
-                          <p className={`mt-3 text-sm font-semibold ${isDark ? 'text-emerald-200' : 'text-emerald-700'}`}>
-                            Score {round.feedback?.overall_score}
-                          </p>
-                        </article>
-                      ))
-                    ) : (
-                      <div className={`rounded-2xl border p-5 ${isDark ? 'border-white/10 bg-white/5 text-emerald-100' : 'border-emerald-100 bg-emerald-50/40 text-slate-600'}`}>
-                        Start an AI session to see bot questions and answer feedback here.
-                      </div>
-                    )}
-
-                    {aiSession?.current_question || aiSession?.opening_question ? (
-                      <div className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
-                        <p className="text-sm font-black">Current Question</p>
-                        <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>
+                    {/* Current Question */}
+                    {aiSession?.opening_question || aiSession?.current_question ? (
+                      <div className={`rounded-2xl border p-5 mb-6 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="text-sm font-black">AI Question</h4>
+                          <button
+                            type="button"
+                            onClick={() => speakText(aiSession.current_question || aiSession.opening_question)}
+                            className={secondaryButtonClass}
+                            disabled={!SpeechSynthesisImpl}
+                          >
+                            <FaPlay className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p className={`text-base leading-7 ${isDark ? 'text-emerald-50/90' : 'text-slate-700'}`}>
                           {aiSession.current_question || aiSession.opening_question}
                         </p>
                       </div>
                     ) : null}
 
-                    {aiFinalFeedback ? (
-                      <article className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-white'}`}>
-                        <h4 className="text-lg font-black">Final AI Practice Feedback</h4>
-                        <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>
-                          Overall score: {aiFinalFeedback.overall_score}
-                        </p>
-                        <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>
-                          Rounds completed: {aiFinalFeedback.practice_summary?.rounds_completed}
-                        </p>
-                        <p className={`mt-2 text-sm ${isDark ? 'text-emerald-50/78' : 'text-slate-600'}`}>
-                          Next step: {aiFinalFeedback.practice_summary?.next_step}
-                        </p>
-                      </article>
-                    ) : null}
+                    {/* Answer Input */}
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-sm font-bold">Your Answer</label>
+                          <span className={`text-xs ${isDark ? 'text-emerald-100/55' : 'text-slate-500'}`}>
+                            {listeningTarget === 'ai' ? '🎤 Listening...' : 'Click mic to speak'}
+                          </span>
+                        </div>
+                        <div className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-black/10' : 'border-emerald-100 bg-white'}`}>
+                          <div className="flex items-center gap-3 mb-3">
+                            <button
+                              type="button"
+                              onClick={() => startVoiceCapture('ai')}
+                              className={listeningTarget === 'ai' ? primaryButtonClass : secondaryButtonClass}
+                              disabled={!SpeechRecognitionImpl}
+                            >
+                              {listeningTarget === 'ai' ? <FaStop /> : <FaMicrophone />}
+                              {listeningTarget === 'ai' ? 'Stop' : 'Record Answer'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => clearVoiceAnswer('ai')}
+                              className={secondaryButtonClass}
+                            >
+                              Clear
+                            </button>
+                          </div>
+                          <div className={`rounded-xl px-4 py-3 text-sm min-h-[80px] ${isDark ? 'bg-white/5 text-emerald-50' : 'bg-emerald-50/40 text-slate-700'}`}>
+                            {aiAnswer?.trim() || 'Your spoken answer will appear here...'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex gap-3">
+                      <button
+                        type="button"
+                        onClick={handleSubmitAiAnswer}
+                        className={primaryButtonClass}
+                        disabled={aiLoading || !aiAnswer.trim()}
+                      >
+                        Submit Answer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleFinishAiSession}
+                        className={secondaryButtonClass}
+                        disabled={aiLoading}
+                      >
+                        End Interview
+                      </button>
+                    </div>
+                  </section>
+                ) : (
+                  /* Getting Started Card */
+                  <section className={`rounded-[2rem] p-8 text-center ${cardBase}`}>
+                    <div className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl mb-4 ${isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
+                      <FaPlay className="text-2xl" />
+                    </div>
+                    <h3 className="text-xl font-black mb-2">Ready to Start?</h3>
+                    <p className={`text-sm ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                      {mode === 'peer'
+                        ? 'Select two users above and start a peer interview session'
+                        : 'Choose a practice profile and begin your AI interview'
+                      }
+                    </p>
+                  </section>
+                )}
+
+                {/* Progress & Status */}
+                {(peerSession || aiSession) && (
+                  <section className={`rounded-[2rem] p-6 ${cardBase}`}>
+                    <h3 className="text-lg font-black mb-4">Session Progress</h3>
+                    <div className="grid gap-3">
+                      {progressSummary.map((item) => (
+                        <div key={item.label} className={`flex items-center justify-between rounded-xl px-4 py-3 ${isDark ? 'bg-white/5' : 'bg-emerald-50/50'}`}>
+                          <span className="text-sm font-semibold">{item.label}</span>
+                          <span className="text-lg font-black">{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom Section - Results/History */}
+            {(peerTurns.length > 0 || aiRounds.length > 0 || peerFinalFeedback || aiFinalFeedback) && (
+              <section className={`rounded-[2rem] p-6 ${cardBase}`}>
+                <h3 className="text-2xl font-black mb-6">
+                  {mode === 'peer' ? 'Interview Transcript & Feedback' : 'Practice Rounds & Feedback'}
+                </h3>
+
+                {mode === 'peer' ? (
+                  <div className="space-y-4">
+                    {peerTurns.map((turn, index) => (
+                      <div key={index} className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
+                            <span className="text-sm font-black">{index + 1}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-bold">Q: {turn.question}</p>
+                            <p className={`text-sm mt-1 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                              A: {turn.answer}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {peerFinalFeedback && (
+                      <div className={`rounded-2xl border p-5 ${isDark ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-emerald-200 bg-emerald-50'}`}>
+                        <h4 className="font-black mb-3">Final Feedback</h4>
+                        <div className="space-y-3">
+                          {peerFinalFeedback.feedback?.map((item) => (
+                            <div key={item.user_id}>
+                              <p className="font-bold">{item.user_name}</p>
+                              <p className={`text-sm ${isDark ? 'text-emerald-50/80' : 'text-slate-700'}`}>
+                                Score: {item.overall_score}/10
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {aiRounds.map((round, index) => (
+                      <div key={index} className={`rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/40'}`}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isDark ? 'bg-blue-400/10 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
+                            <span className="text-sm font-black">{index + 1}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-bold text-sm">Question: {round.question}</p>
+                            <p className={`text-sm mt-2 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                              Your Answer: {round.answer}
+                            </p>
+                            {round.feedback && (
+                              <p className={`text-sm mt-2 font-semibold ${isDark ? 'text-emerald-200' : 'text-emerald-700'}`}>
+                                Score: {round.feedback.overall_score}/10
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {aiFinalFeedback && (
+                      <div className={`rounded-2xl border p-5 ${isDark ? 'border-emerald-400/20 bg-emerald-400/5' : 'border-emerald-200 bg-emerald-50'}`}>
+                        <h4 className="font-black mb-3">Final Assessment</h4>
+                        <div className="space-y-2">
+                          <p className="text-lg font-black">Overall Score: {aiFinalFeedback.overall_score}/10</p>
+                          <p className={`text-sm ${isDark ? 'text-emerald-50/80' : 'text-slate-700'}`}>
+                            {aiFinalFeedback.feedback_summary || 'Practice session completed successfully!'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </section>
-            </div>
+            )}
           </div>
         </main>
       </div>

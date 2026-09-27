@@ -59,7 +59,7 @@ const OAuthCallback = ({ theme }) => {
         saveRegisteredUsers(nextRegisteredUsers);
         setStatus('Sign-in complete. Redirecting...');
         setTimeout(() => {
-          navigate('/home', { replace: true });
+          navigate('/profile', { replace: true });
         }, 700);
       } catch (err) {
         setError(err.message || 'Could not finish sign-in.');

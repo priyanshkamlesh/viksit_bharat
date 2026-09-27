@@ -119,13 +119,6 @@ export function saveCollaborationProfile(profile) {
   });
 }
 
-export function fetchFullRoadmap(skill, level) {
-  return request('/full-roadmap', {
-    method: 'POST',
-    body: JSON.stringify({ skill, level }),
-  });
-}
-
 export function fetchJobRoleSpecializations(role) {
   return request('/job-role-types', {
     method: 'POST',
@@ -133,13 +126,10 @@ export function fetchJobRoleSpecializations(role) {
   });
 }
 
-export function fetchTechnologyGraph(userId, selectedSkills) {
-  return request('/technology/graph', {
+export function fetchTnpTopicMaterial(track, topic) {
+  return request('/tnp/topic-material', {
     method: 'POST',
-    body: JSON.stringify({
-      user_id: userId,
-      selected_skills: selectedSkills,
-    }),
+    body: JSON.stringify({ track, topic }),
   });
 }
 
@@ -195,13 +185,6 @@ export function continueAiMockInterview(sessionId, answer) {
 
 export function finishAiMockInterview(sessionId) {
   return request(`/mock-interview/ai/finish/${sessionId}`);
-}
-
-export function gradeMockTestAnswers(payload) {
-  return request('/mock-interview/mock-test/grade', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
 }
 
 export function fetchMockInterviewChat(sessionId) {

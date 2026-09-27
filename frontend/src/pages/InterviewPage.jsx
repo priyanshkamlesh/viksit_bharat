@@ -8,7 +8,6 @@ import {
   FaSignOutAlt,
   FaSun,
   FaSyncAlt,
-  FaUserCheck,
   FaUserCircle,
   FaUsersCog,
 } from 'react-icons/fa';
@@ -149,16 +148,16 @@ const InterviewPage = ({ theme, setTheme }) => {
           </div>
         </nav>
 
-        <main className="flex flex-1 items-center justify-center py-6">
-          <div className="w-full">
-            <div className="mx-auto max-w-3xl text-center">
+        <main className="flex flex-1 flex-col justify-center py-6">
+            <div className="w-full">
+              <div className="mx-auto max-w-3xl text-center">
               <p className={`text-xs font-bold uppercase tracking-[0.35em] ${isDark ? 'text-emerald-300/80' : 'text-emerald-700'}`}>Interview Skills</p>
               <h2 className={`mt-3 text-3xl font-black tracking-tight sm:text-4xl ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 Build the people skills that help you stand out.
               </h2>
             </div>
 
-            <div className="mx-auto mt-8 grid max-w-6xl gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mx-auto mt-8 grid max-w-6xl gap-5 lg:grid-cols-3">
               <button type="button" onClick={() => navigate('/interview/communication')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
                   <FaComments className="text-xl" />
@@ -187,7 +186,7 @@ const InterviewPage = ({ theme, setTheme }) => {
                 </div>
               </button>
 
-              <button type="button" className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
+              <button type="button" onClick={() => navigate('/interview/tnp')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-sky-400/10 text-sky-300' : 'bg-sky-100 text-sky-700'}`}>
                   <FaUsersCog className="text-xl" />
                 </div>
@@ -200,25 +199,11 @@ const InterviewPage = ({ theme, setTheme }) => {
                   <FaArrowRight className="transition-transform group-hover:translate-x-1" />
                 </div>
               </button>
-
-              <button type="button" onClick={() => navigate('/interview/mock')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
-                <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-fuchsia-400/10 text-fuchsia-300' : 'bg-fuchsia-100 text-fuchsia-700'}`}>
-                  <FaUserCheck className="text-xl" />
-                </div>
-                <h3 className="text-xl font-black">Mock Interview</h3>
-                <p className={`mt-3 text-sm leading-6 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
-                  Simulate interview pressure, practice answers, and sharpen delivery with mock interview routines.
-                </p>
-                <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-fuchsia-300' : 'text-fuchsia-700'}`}>
-                  Explore track
-                  <FaArrowRight className="transition-transform group-hover:translate-x-1" />
-                </div>
-              </button>
             </div>
           </div>
         </main>
-      </div>
     </div>
+  </div>
   );
 };
 

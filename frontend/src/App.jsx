@@ -4,28 +4,23 @@ import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/RegistrationPage'
 import Home from './pages/Home'
-import TechPage from './pages/TechPage'
 import InterviewPage from './pages/InterviewPage'
-import AiMlPage from './pages/AiMlPage'
-import ProgrammingLanguagePage from './pages/ProgrammingLanguagePage'
-import FullStackPage from './pages/FullStackPage'
-import CloudDevopsPage from './pages/CloudDevopsPage'
-import LibrariesFrameworksPage from './pages/LibrariesFrameworksPage'
-import ApisPage from './pages/ApisPage'
-import DatabasePage from './pages/DatabasePage'
-import SkillRoadmapPage from './pages/SkillRoadmapPage'
-import MockTestPage from './pages/MockTestPage'
 import MockInterviewPage from './pages/MockInterviewPage'
 import RecommendationPage from './pages/RecommendationPage'
+import ResumePage from './pages/ResumePage'
+import ChatbotPage from './pages/ChatbotPage'
 import ProfilePage from './pages/ProfilePage'
 import DashboardPage from './pages/DashboardPage'
 import InboxPage from './pages/InboxPage'
 import OAuthCallback from './pages/OAuthCallback'
-import TechTrackPage from './pages/TechTrackPage'
 import JobRolePage from './pages/JobRolePage'
 import JobRoleTypesPage from './pages/JobRoleTypesPage'
 import CommunicationSkillsPage from './pages/CommunicationSkillsPage'
 import InterpersonalSkillsPage from './pages/InterpersonalSkillsPage'
+import TnpSkillsPage from './pages/TnpSkillsPage'
+import FloatingChatbot from './components/FloatingChatbot'
+import ResponsiveNavigation from './components/ResponsiveNavigation'
+import ToastFeedback from './components/ToastFeedback'
 import { readCurrentUser } from './lib/currentUser'
 
 const App = () => {
@@ -71,34 +66,34 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path='/login' element={<Login theme={theme} setTheme={setTheme} />} />
-        <Route path='/auth/callback' element={<OAuthCallback theme={theme} setTheme={setTheme} />} />
-        <Route path='/register' element={<Register theme={theme} setTheme={setTheme} />} />
-        <Route path='/profile' element={<ProtectedRoute element={<ProfilePage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/collaboration-profile' element={<ProtectedRoute element={<ProfilePage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/home' element={<ProtectedRoute element={<Home theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/job-roles' element={<ProtectedRoute element={<JobRolePage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/job-roles/types' element={<ProtectedRoute element={<JobRoleTypesPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/dashboard' element={<ProtectedRoute element={<DashboardPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/inbox' element={<ProtectedRoute element={<InboxPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/tech' element={<ProtectedRoute element={<TechPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/interview' element={<ProtectedRoute element={<InterviewPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/interview/mock' element={<ProtectedRoute element={<MockInterviewPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/interview/communication' element={<ProtectedRoute element={<CommunicationSkillsPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/interview/interpersonal' element={<ProtectedRoute element={<InterpersonalSkillsPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/aiml' element={<ProtectedRoute element={<AiMlPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/programming-language' element={<ProtectedRoute element={<ProgrammingLanguagePage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/full-stack-developer' element={<ProtectedRoute element={<FullStackPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/cloud-devops' element={<ProtectedRoute element={<CloudDevopsPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/libraries-frameworks' element={<ProtectedRoute element={<LibrariesFrameworksPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/apis' element={<ProtectedRoute element={<ApisPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/database' element={<ProtectedRoute element={<DatabasePage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/roadmap/:skillId' element={<ProtectedRoute element={<SkillRoadmapPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/mock-test/:skillId' element={<ProtectedRoute element={<MockTestPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/tech/:track' element={<ProtectedRoute element={<TechTrackPage theme={theme} setTheme={setTheme} />} />} />
-        <Route path='/recommendations' element={<ProtectedRoute element={<RecommendationPage theme={theme} setTheme={setTheme} />} />} />
-      </Routes>
+      <div className={`min-h-dvh w-full ${theme === 'dark' ? 'bg-[#050f0a]' : 'bg-[#f0fdf4]'}`}>
+        <ToastFeedback theme={theme} />
+        {currentUser && <ResponsiveNavigation theme={theme} setTheme={setTheme} currentUser={currentUser} />}
+        <Routes>
+          <Route path='/login' element={<Login theme={theme} setTheme={setTheme} />} />
+          <Route path='/auth/callback' element={<OAuthCallback theme={theme} setTheme={setTheme} />} />
+          <Route path='/register' element={<Register theme={theme} setTheme={setTheme} />} />
+          <Route path='/profile' element={<ProtectedRoute element={<ProfilePage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/collaboration-profile' element={<ProtectedRoute element={<ProfilePage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/home' element={<ProtectedRoute element={<Home theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/job-roles' element={<ProtectedRoute element={<JobRolePage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/job-roles/types' element={<ProtectedRoute element={<JobRoleTypesPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/dashboard' element={<ProtectedRoute element={<DashboardPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/inbox' element={<ProtectedRoute element={<InboxPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/interview' element={<ProtectedRoute element={<InterviewPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/interview/mock' element={<ProtectedRoute element={<MockInterviewPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/interview/communication' element={<ProtectedRoute element={<CommunicationSkillsPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/interview/interpersonal' element={<ProtectedRoute element={<InterpersonalSkillsPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/interview/tnp' element={<ProtectedRoute element={<TnpSkillsPage theme={theme} />} />} />
+          <Route path='/interview/tnp/topic' element={<ProtectedRoute element={<TnpSkillsPage theme={theme} />} />} />
+          <Route path='/recommendations' element={<ProtectedRoute element={<RecommendationPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/recommendations/profiles' element={<ProtectedRoute element={<RecommendationPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/resume' element={<ProtectedRoute element={<ResumePage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/chatbot' element={<ProtectedRoute element={<ChatbotPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='*' element={<Navigate to={currentUser ? '/home' : '/login'} replace />} />
+        </Routes>
+        {currentUser && <FloatingChatbot theme={theme} />}
+      </div>
     </BrowserRouter>
   )
 }

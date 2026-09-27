@@ -13,7 +13,6 @@ from backend.services import (
     save_notification,
     save_collaboration_profile_doc,
     save_user,
-    seed_users_if_needed,
 )
 
 BRANCH_JOB_ROLES = {
@@ -144,7 +143,6 @@ def _resolve_job_role(branch, job_role):
 
 
 def load_users():
-    seed_users_if_needed()
     return list_users()
 
 

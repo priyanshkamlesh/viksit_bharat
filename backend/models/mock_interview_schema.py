@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -49,20 +49,6 @@ class NotificationDeclineRequest(BaseModel):
     notification_id: str
 
 
-class MockTestQuestionGradeRequest(BaseModel):
-    id: str
-    question: str
-    answer: str
-    acceptedAnswers: List[str] = Field(default_factory=list)
-    submitted: str
-
-
-class MockTestGradeRequest(BaseModel):
-    skill: str
-    level: str = ""
-    questions: List[MockTestQuestionGradeRequest] = Field(default_factory=list)
-
-
 class ChatMessageRequest(BaseModel):
     session_id: str
     sender_id: int
@@ -70,15 +56,10 @@ class ChatMessageRequest(BaseModel):
     message: str
 
 
-class TechnologyGraphRequest(BaseModel):
-    user_id: int
-    selected_skills: List[str] = Field(default_factory=list)
-
-
 class RecommendationProfileRequest(BaseModel):
-    id: int | None = None
+    id: Optional[int] = None
     name: str
-    email: str | None = None
+    email: Optional[str] = None
     goal: str = ""
     location: str = ""
     interests: List[str] = Field(default_factory=list)
@@ -89,14 +70,14 @@ class RecommendationProfileRequest(BaseModel):
 class UserRegistrationRequest(BaseModel):
     name: str
     email: str
-    password: str | None = None
-    age: int | None = None
+    password: Optional[str] = None
+    age: Optional[int] = None
     education: str = ""
     residence: str = ""
     goal: str = ""
     location: str = ""
     interests: List[str] = Field(default_factory=list)
-    skills: dict | str | List[str] = Field(default_factory=dict)
+    skills: Optional[dict] = Field(default_factory=dict)
     mock_interview: dict = Field(default_factory=dict)
 
 

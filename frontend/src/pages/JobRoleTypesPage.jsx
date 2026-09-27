@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   FaArrowLeft,
   FaCheckCircle,
@@ -10,9 +10,9 @@ import {
 } from 'react-icons/fa';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { fetchJobRoleSpecializations, updateCollaborationProfile } from '../lib/api';
+import { updateCollaborationProfile } from '../lib/api';
+import { getJobRolesForBranch } from '../data/careerPaths';
 import { clearCurrentUser, readCurrentUser, readRegisteredUsers, saveCurrentUser, saveRegisteredUsers } from '../lib/currentUser';
-import { slugifySkill } from '../data/skillRoadmaps';
 
 const JobRoleTypesPage = ({ theme, setTheme }) => {
   const navigate = useNavigate();
@@ -24,9 +24,7 @@ const JobRoleTypesPage = ({ theme, setTheme }) => {
   const [message, setMessage] = useState('');
   const [roleData, setRoleData] = useState({ role: '', summary: '', items: [] });
   const [selectedType, setSelectedType] = useState('');
-  const roleCacheRef = useRef(new Map());
 
-  const role = searchParams.get('role') || currentUser?.job_role || 'Software Engineer';
   const branch = searchParams.get('branch') || currentUser?.branch || '';
 
   useEffect(() => {
@@ -34,63 +32,16 @@ const JobRoleTypesPage = ({ theme, setTheme }) => {
   }, []);
 
   useEffect(() => {
-    let ignore = false;
-
-    const loadRoleTypes = async () => {
-      const cached = roleCacheRef.current.get(role);
-      if (cached) {
-        setRoleData(cached);
-        setSelectedType((current) => current || cached.items?.[0]?.title || '');
-        return;
-      }
-
-      setLoading(true);
-      setMessage('');
-
-      try {
-        const data = await fetchJobRoleSpecializations(role);
-        if (ignore) {
-          return;
-        }
-        if (data?.error) {
-          const providerErrors = Array.isArray(data?.provider_errors)
-            ? data.provider_errors
-                .map((entry) => `${entry?.provider || 'provider'}: ${entry?.error || 'unknown error'}`)
-                .filter(Boolean)
-            : [];
-          const detailedMessage = providerErrors.length
-            ? `${data.error}\n${providerErrors.join('\n')}`
-            : data.error;
-          throw new Error(detailedMessage);
-        }
-
-        const items = Array.isArray(data.items) ? data.items : [];
-        const nextRoleData = {
-          role: data.role || role,
-          summary: data.summary || '',
-          items,
-        };
-        setRoleData(nextRoleData);
-        roleCacheRef.current.set(role, nextRoleData);
-        setSelectedType((current) => current || items[0]?.title || '');
-      } catch (error) {
-        if (!ignore) {
-          setRoleData({ role, summary: 'No AI data available right now.', items: [] });
-          setMessage(error.message || 'Could not load role specializations.');
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadRoleTypes();
-
-    return () => {
-      ignore = true;
-    };
-  }, [role]);
+    const roles = getJobRolesForBranch(branch);
+    const items = roles.map((targetRole) => ({
+      title: targetRole,
+      description: `A target role available for ${branch}.`,
+    }));
+    setRoleData({ role: branch, summary: `Choose the target role that best matches your ${branch} path.`, items });
+    setSelectedType((current) => (current && roles.includes(current) ? current : ''));
+    setMessage('');
+    setLoading(false);
+  }, [branch]);
 
   const toggleTheme = () => {
     setTheme((current) => (current === 'light' ? 'dark' : 'light'));
@@ -103,17 +54,6 @@ const JobRoleTypesPage = ({ theme, setTheme }) => {
 
   const handleExploreType = (typeTitle) => {
     setSelectedType(typeTitle);
-    const skillSlug = slugifySkill(typeTitle || role || 'skill-roadmap');
-    const params = new URLSearchParams();
-    params.set('source', 'job-role');
-    params.set('specialization', typeTitle || '');
-    if (branch) {
-      params.set('branch', branch);
-    }
-    if (role) {
-      params.set('role', role);
-    }
-    navigate(`/roadmap/${encodeURIComponent(skillSlug)}?${params.toString()}`);
   };
 
   const handleSave = async () => {
@@ -246,11 +186,10 @@ const JobRoleTypesPage = ({ theme, setTheme }) => {
             <div className="mx-auto max-w-3xl text-center">
               <p className={`text-xs font-bold uppercase tracking-[0.35em] ${isDark ? 'text-emerald-300/80' : 'text-emerald-700'}`}>AI generated</p>
               <h2 className={`mt-3 text-3xl font-black tracking-tight sm:text-4xl ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {role} specializations
+                Target roles for {branch || 'your branch'}
               </h2>
               <p className={`mt-4 text-sm leading-7 sm:text-base ${isDark ? 'text-emerald-50/75' : 'text-slate-600'}`}>
-                {roleData.summary || `Choose the specialization that matches your ${role.toLowerCase()} path.`} Click a card to open its skill graph.
-                {branch ? ` Branch: ${branch}.` : ''}
+                {roleData.summary} Click a role card to select it.
               </p>
             </div>
 
@@ -280,7 +219,7 @@ const JobRoleTypesPage = ({ theme, setTheme }) => {
 
             {!loading && !(roleData.items || []).length ? (
               <div className={`mx-auto mt-6 max-w-3xl rounded-2xl px-4 py-3 text-sm font-semibold ${isDark ? 'bg-white/5 text-emerald-50/70' : 'bg-emerald-50 text-slate-600'}`}>
-                No specializations were returned. Try another role.
+                No target roles were found. Go back and choose another branch.
               </div>
             ) : null}
 

@@ -12,7 +12,7 @@ import {
   FaStar,
   FaUsers,
 } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { fetchRecommendationUsers, fetchRecommendationsForProfile, fetchUserNotifications, sendConnectionInvite } from '../lib/api';
 import { readCurrentUser } from '../lib/currentUser';
@@ -33,9 +33,19 @@ const formatScore = (score) => {
   return score.toFixed(3);
 };
 
+const getCity = (location) => {
+  if (!location) {
+    return 'City not set';
+  }
+
+  return location.split(',')[0].trim() || 'City not set';
+};
+
 const RecommendationPage = ({ theme, setTheme }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isDark = theme === 'dark';
+  const showProfiles = location.pathname === '/recommendations/profiles';
 
   const [currentUser, setCurrentUser] = useState(() => readCurrentUser());
   const [recommendations, setRecommendations] = useState([]);
@@ -50,6 +60,7 @@ const RecommendationPage = ({ theme, setTheme }) => {
   const [isReady, setIsReady] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [hoveredProfile, setHoveredProfile] = useState(null);
 
   const cardBase = isDark
     ? 'border border-emerald-500/15 bg-white/5 text-emerald-50 shadow-[0_24px_60px_rgba(0,0,0,0.28)]'
@@ -282,6 +293,25 @@ const RecommendationPage = ({ theme, setTheme }) => {
           isReady ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
         }`}
       >
+        {showProfiles ? (
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className={`text-xs font-black uppercase tracking-[0.35em] ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>Collaboration network</p>
+              <h1 className={`mt-2 text-3xl font-black tracking-tight sm:text-4xl ${isDark ? 'text-white' : 'text-slate-900'}`}>Recommended profiles</h1>
+              <p className={`mt-3 max-w-2xl text-sm leading-6 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                Meet live collaborators ranked by shared goals, skills, interests, and interview readiness.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/recommendations')}
+              className={`inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-bold transition-all ${isDark ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-white text-slate-800 ring-1 ring-emerald-100 hover:bg-emerald-50'}`}
+            >
+              Back to overview
+            </button>
+          </div>
+        ) : null}
+
         <nav className={`flex items-center justify-between rounded-full px-5 py-4 backdrop-blur-2xl ${isDark ? 'border border-emerald-500/15 bg-white/5' : 'border border-white/70 bg-white/75'}`}>
           <div>
             <p className={`text-xs font-bold uppercase tracking-[0.35em] ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>SkillNet</p>
@@ -332,8 +362,10 @@ const RecommendationPage = ({ theme, setTheme }) => {
           </div>
         </nav>
 
-        <main className="flex-1 py-6">
-          <section className={`overflow-hidden rounded-[2rem] p-7 ${cardBase}`}>
+        <main className={`grid gap-6 py-6 ${showProfiles ? '' : 'lg:grid-cols-[1.7fr_0.95fr]'}`}>
+          <div className="space-y-6">
+            {!showProfiles ? (
+            <section className={`overflow-hidden rounded-[2rem] p-7 ${cardBase}`}>
             <div className="flex flex-col gap-4 border-b border-white/10 pb-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.28em] ${isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-50 text-emerald-700'}`}>
@@ -440,10 +472,23 @@ const RecommendationPage = ({ theme, setTheme }) => {
               <div className={`mt-5 rounded-2xl p-4 text-sm ${isDark ? 'bg-black/15 text-emerald-50/70' : 'bg-white/70 text-slate-600'}`}>
                 The list comes from MongoDB, filtered to users who are ready to connect right now.
               </div>
+
+              {!showProfiles ? (
+                <button
+                  type="button"
+                  onClick={() => navigate('/recommendations/profiles')}
+                  className={`mt-5 inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-black transition-all ${isDark ? 'bg-emerald-400 text-emerald-950 hover:bg-emerald-300' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`}
+                >
+                  View recommended profiles
+                  <FaArrowRight />
+                </button>
+              ) : null}
             </div>
           </section>
+            ) : null}
 
-          <section className={`mt-6 rounded-[2rem] p-6 ${cardBase}`}>
+          {showProfiles ? (
+            <section className={`mt-6 rounded-[2rem] p-6 ${cardBase}`}>
             <div className="flex flex-col gap-3 border-b border-white/10 pb-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className={`text-xs font-bold uppercase tracking-[0.35em] ${isDark ? 'text-emerald-300/80' : 'text-emerald-700'}`}>Ranked results</p>
@@ -462,16 +507,12 @@ const RecommendationPage = ({ theme, setTheme }) => {
               <div className={`mt-6 rounded-[1.5rem] p-6 text-sm ${surfaceBase}`}>Calculating peer matches...</div>
             ) : readyToConnectUsers.length ? (
               <div className="mt-6 grid gap-4 xl:grid-cols-2">
-                {readyToConnectUsers.map((item, index) => {
-                  const recommendation = item.recommendation || {};
-                  const progress = topRecommendationScore ? Math.max(8, Math.round(((recommendation.score || 0) / topRecommendationScore) * 100)) : 8;
-                  const previewReasons = (recommendation.reasons || []).slice(0, 3);
+                {readyToConnectUsers.map((item) => {
                   const profileSkills = Array.isArray(item?.collaboration_skills)
                     ? item.collaboration_skills
                     : item?.skills && typeof item.skills === 'object'
                       ? Object.entries(item.skills).map(([name, level]) => ({ name, level }))
                       : [];
-                  const profileInterests = Array.isArray(item?.interests) ? item.interests : [];
                   const profile = item;
 
                   return (
@@ -481,73 +522,34 @@ const RecommendationPage = ({ theme, setTheme }) => {
                         isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-white'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
+                          <FaStar />
+                        </div>
                         <div>
-                          <div className="flex items-center gap-3">
-                            <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
-                              <FaStar />
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-600">
-                                Rank {index + 1}
-                              </p>
-                              <h4 className="text-xl font-black">{profile.name}</h4>
-                              {profile?.domain ? (
-                                <p className={`mt-1 text-xs font-semibold uppercase tracking-[0.22em] ${isDark ? 'text-emerald-100/65' : 'text-slate-500'}`}>
-                                  {profile.domain}
-                                </p>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className={`rounded-2xl px-4 py-3 text-right ${isDark ? 'bg-white/5' : 'bg-emerald-50'}`}>
-                          <p className="text-[0.65rem] font-bold uppercase tracking-[0.28em] text-emerald-600">Score</p>
-                          <p className="mt-1 text-2xl font-black">{formatScore(item.score)}</p>
+                          <p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-600">Collaborator</p>
+                          <h4 className="text-xl font-black">{profile.name}</h4>
                         </div>
                       </div>
-
-                      <div className="mt-5 h-2 overflow-hidden rounded-full bg-black/10">
-                        <div
-                          className={`h-full rounded-full ${isDark ? 'bg-gradient-to-r from-emerald-400 via-lime-300 to-amber-300' : 'bg-gradient-to-r from-emerald-600 via-lime-500 to-amber-400'}`}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-2">
-                          {(previewReasons.length ? previewReasons : ['No specific match reasons returned.']).map((reason) => (
-                            <span key={reason} className={`rounded-full px-3 py-1 text-xs font-semibold ${chipBase}`}>
-                              {reason}
-                            </span>
-                          ))}
-                        </div>
 
                       {profile ? (
                         <div className={`mt-4 rounded-2xl p-4 ${surfaceBase}`}>
-                          <div className="flex items-start justify-between gap-4">
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                              <p className={`text-xs font-bold uppercase tracking-[0.28em] ${isDark ? 'text-emerald-200/70' : 'text-emerald-700/70'}`}>Profile preview</p>
-                              <p className="mt-2 text-sm font-black">{profile.name || item.name}</p>
+                              <p className="text-sm font-black">{profile.name || item.name}</p>
                               <p className={`mt-1 text-sm ${isDark ? 'text-emerald-50/65' : 'text-slate-600'}`}>
-                                {profile.location || 'Location not set'}
+                                {getCity(profile.location)}
                               </p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex w-full gap-2 sm:w-auto">
                               <button
                                 type="button"
                                 onClick={() => handleSendInvite(profile.id, profile.name || item.name)}
                                 disabled={inviteLoadingId === String(profile.id)}
-                                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-60 ${isDark ? 'bg-emerald-400 text-slate-950 hover:bg-emerald-300' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`}
+                                className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all sm:w-auto disabled:cursor-not-allowed disabled:opacity-60 ${isDark ? 'bg-emerald-400 text-slate-950 hover:bg-emerald-300' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`}
                               >
                                 {inviteLoadingId === String(profile.id) ? 'Sending...' : 'Connect'}
                                 <FaArrowRight />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => navigate('/inbox')}
-                                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all ${isDark ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-white text-slate-900 ring-1 ring-emerald-100 hover:bg-slate-50'}`}
-                              >
-                                Inbox
                               </button>
                             </div>
                           </div>
@@ -562,15 +564,7 @@ const RecommendationPage = ({ theme, setTheme }) => {
                             </div>
                           ) : null}
 
-                          {profileInterests.length ? (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {profileInterests.slice(0, 4).map((interest) => (
-                                <span key={interest} className={`rounded-full px-3 py-1 text-xs font-semibold ${chipBase}`}>
-                                  {humanizeKey(interest)}
-                                </span>
-                              ))}
-                            </div>
-                          ) : null}
+                          
                         </div>
                       ) : (
                         <div className={`mt-4 rounded-2xl p-4 text-sm ${surfaceBase}`}>
@@ -578,20 +572,6 @@ const RecommendationPage = ({ theme, setTheme }) => {
                         </div>
                       )}
 
-                      <div className={`mt-4 rounded-2xl p-4 ${surfaceBase}`}>
-                        <p className={`text-xs font-bold uppercase tracking-[0.28em] ${isDark ? 'text-emerald-200/70' : 'text-emerald-700/70'}`}>Why this match surfaced</p>
-                        <ul className="mt-3 space-y-2">
-                          {(item.reasons || []).slice(0, 4).map((reason) => (
-                            <li key={reason} className="flex items-start gap-3 text-sm leading-6">
-                              <FaCheckCircle className={`mt-0.5 flex-shrink-0 ${isDark ? 'text-emerald-300' : 'text-emerald-600'}`} />
-                              <span>{reason}</span>
-                            </li>
-                          ))}
-                          {!item.reasons?.length ? (
-                            <li className={`text-sm ${isDark ? 'text-emerald-50/60' : 'text-slate-600'}`}>The backend returned no reason strings for this profile.</li>
-                          ) : null}
-                        </ul>
-                      </div>
                     </article>
                   );
                 })}
@@ -613,14 +593,17 @@ const RecommendationPage = ({ theme, setTheme }) => {
               <button
                 type="button"
                 onClick={() => setRefreshTick((current) => current + 1)}
-                className={`inline-flex items-center justify-center gap-3 rounded-full px-6 py-3 text-sm font-black transition-all ${isDark ? 'bg-gradient-to-r from-emerald-500 to-amber-400 text-emerald-950' : 'bg-gradient-to-r from-emerald-600 to-green-400 text-white'}`}
+                className={`inline-flex w-full items-center justify-center gap-3 rounded-full px-6 py-3 text-sm font-black transition-all sm:w-auto ${isDark ? 'bg-gradient-to-r from-emerald-500 to-amber-400 text-emerald-950' : 'bg-gradient-to-r from-emerald-600 to-green-400 text-white'}`}
               >
                 Recalculate matches
                 <FaArrowRight />
               </button>
             </div>
-          </section>
-        </main>
+            </section>
+          ) : null}
+        </div>
+
+      </main>
       </div>
     </div>
   );
