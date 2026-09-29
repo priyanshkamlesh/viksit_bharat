@@ -187,6 +187,17 @@ export function finishAiMockInterview(sessionId) {
   return request(`/mock-interview/ai/finish/${sessionId}`);
 }
 
+export function generateMockTest(category, skill, questionCount = 10) {
+  return request('/mock-interview/mock-test/generate', {
+    method: 'POST',
+    body: JSON.stringify({
+      category,
+      skill,
+      question_count: questionCount,
+    }),
+  });
+}
+
 export function fetchMockInterviewChat(sessionId) {
   return request(`/mock-interview/chat/${sessionId}`);
 }

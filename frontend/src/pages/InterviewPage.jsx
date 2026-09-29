@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FaArrowRight,
+  FaClipboardCheck,
   FaComments,
   FaHome,
   FaMoon,
@@ -157,7 +158,7 @@ const InterviewPage = ({ theme, setTheme }) => {
               </h2>
             </div>
 
-            <div className="mx-auto mt-8 grid max-w-6xl gap-5 lg:grid-cols-3">
+            <div className="mx-auto mt-8 grid max-w-6xl gap-5 md:grid-cols-2 xl:grid-cols-4">
               <button type="button" onClick={() => navigate('/interview/communication')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-emerald-500/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
                   <FaComments className="text-xl" />
@@ -196,6 +197,20 @@ const InterviewPage = ({ theme, setTheme }) => {
                 </p>
                 <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-sky-300' : 'text-sky-700'}`}>
                   Explore track
+                  <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+                </div>
+              </button>
+
+              <button type="button" onClick={() => navigate('/interview/mock-test')} className={`group rounded-[2rem] p-6 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
+                <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-violet-400/10 text-violet-300' : 'bg-violet-100 text-violet-700'}`}>
+                  <FaClipboardCheck className="text-xl" />
+                </div>
+                <h3 className="text-xl font-black">Mock Test</h3>
+                <p className={`mt-3 text-sm leading-6 ${isDark ? 'text-emerald-50/70' : 'text-slate-600'}`}>
+                  Take AI-generated Aptitude, Reasoning, and skill-based Technical MCQ tests.
+                </p>
+                <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-violet-300' : 'text-violet-700'}`}>
+                  Start test
                   <FaArrowRight className="transition-transform group-hover:translate-x-1" />
                 </div>
               </button>

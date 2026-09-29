@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FaArrowRight, FaChartLine, FaHome, FaMoon, FaSun, FaUsers } from 'react-icons/fa';
+import { FaArrowRight, FaChartLine, FaClipboardCheck, FaHome, FaMoon, FaSun, FaUsers } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 import { readCurrentUser } from '../lib/currentUser';
-import { readConnectionHistory } from '../lib/dashboardStorage';
+import { readConnectionHistory, readMockTestHistory } from '../lib/dashboardStorage';
 
 const formatDateTime = (value) => {
   if (!value) {
@@ -66,18 +66,24 @@ const DashboardPage = ({ theme, setTheme }) => {
   }, []);
 
   const connectionHistory = useMemo(() => readConnectionHistory(currentUser?.id), [currentUser?.id, historyVersion]);
+  const mockTestHistory = useMemo(() => readMockTestHistory(currentUser?.id), [currentUser?.id, historyVersion]);
 
   const stats = useMemo(() => {
     const uniqueConnections = new Set(
       connectionHistory.map((item) => String(item.partnerId || item.partnerName || item.connectionId || item.id)),
     ).size;
+    const averageTestScore = mockTestHistory.length
+      ? Math.round(mockTestHistory.reduce((sum, item) => sum + Number(item.percentage || 0), 0) / mockTestHistory.length)
+      : 'N/A';
 
     return [
       { label: 'Connections made', value: uniqueConnections },
       { label: 'Latest connection', value: connectionHistory[0] ? formatDateTime(connectionHistory[0].connectedAt) : 'None yet' },
+      { label: 'Mock tests completed', value: mockTestHistory.length },
+      { label: 'Average test score', value: averageTestScore === 'N/A' ? averageTestScore : `${averageTestScore}%` },
       { label: 'Profile', value: currentUser?.name || 'Active' },
     ];
-  }, [connectionHistory, currentUser?.name]);
+  }, [connectionHistory, currentUser?.name, mockTestHistory]);
 
   const recentConnections = connectionHistory.slice(0, 6);
 
@@ -137,13 +143,46 @@ const DashboardPage = ({ theme, setTheme }) => {
               </button>
             </div>
 
-            <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               {stats.map((item) => (
                 <div key={item.label} className={`rounded-3xl p-4 ${panelBase}`}>
                   <p className={`text-xs font-bold uppercase tracking-[0.28em] ${isDark ? 'text-emerald-200/70' : 'text-emerald-700/70'}`}>{item.label}</p>
                   <p className="mt-3 text-2xl font-black">{item.value}</p>
                 </div>
               ))}
+            </div>
+          </section>
+
+          <section className="mt-6">
+            <div className={`rounded-[2rem] p-6 ${cardBase}`}>
+              <div className="flex items-center justify-between border-b border-white/10 pb-5">
+                <div>
+                  <p className={`text-xs font-bold uppercase tracking-[0.35em] ${isDark ? 'text-emerald-300/80' : 'text-emerald-700'}`}>Mock tests</p>
+                  <h3 className="mt-2 text-2xl font-black">Your recent test scores</h3>
+                </div>
+                <button type="button" onClick={() => navigate('/interview/mock-test')} className={`rounded-full px-4 py-2 text-sm font-bold ${isDark ? 'bg-white/10 text-emerald-100' : 'bg-emerald-50 text-emerald-700'}`}>
+                  Take a test
+                </button>
+              </div>
+
+              <div className="mt-6 space-y-4">
+                {mockTestHistory.slice(0, 6).map((item) => (
+                  <article key={item.id} className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-white'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark ? 'bg-emerald-400/10 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}><FaClipboardCheck /></div>
+                      <div>
+                        <p className="text-sm font-black">{item.category || 'Mock Test'}{item.skill ? `: ${item.skill}` : ''}</p>
+                        <p className={`mt-1 text-xs ${isDark ? 'text-emerald-50/60' : 'text-slate-500'}`}>Completed {formatDateTime(item.completedAt)}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-black text-emerald-600">{item.percentage}%</p>
+                      <p className={`text-xs font-semibold ${isDark ? 'text-emerald-50/60' : 'text-slate-500'}`}>{item.correct}/{item.total} correct</p>
+                    </div>
+                  </article>
+                ))}
+                {!mockTestHistory.length ? <div className={`rounded-2xl p-5 text-sm ${panelBase}`}>No mock tests completed yet. Take an Aptitude, Reasoning, or Technical test to see your score here.</div> : null}
+              </div>
             </div>
           </section>
 

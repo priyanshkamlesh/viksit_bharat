@@ -36,6 +36,12 @@ class AIBotPracticeTurnRequest(BaseModel):
     answer: str
 
 
+class MockTestGenerateRequest(BaseModel):
+    category: str
+    skill: str = ""
+    question_count: int = Field(default=10, ge=10, le=20)
+
+
 class ConnectionInviteRequest(BaseModel):
     sender_id: int
     recipient_id: int

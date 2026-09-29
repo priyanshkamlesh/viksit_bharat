@@ -19,7 +19,9 @@ from backend.models.mock_interview_schema import (
     MockInterviewAnalyzeRequest,
     MockInterviewConnectRequest,
     MockInterviewTurnRequest,
+    MockTestGenerateRequest,
 )
+from backend.models.ai_roadmap_model import generate_mock_test
 
 
 router = APIRouter(prefix="/mock-interview", tags=["mock-interview"])
@@ -73,3 +75,8 @@ def continue_ai_practice(payload: AIBotPracticeTurnRequest):
 @router.get("/ai/finish/{session_id}")
 def finish_ai_practice(session_id: str):
     return finish_ai_mock_interview(session_id)
+
+
+@router.post("/mock-test/generate")
+def generate_ai_mock_test(payload: MockTestGenerateRequest):
+    return generate_mock_test(payload.category, payload.skill, payload.question_count)

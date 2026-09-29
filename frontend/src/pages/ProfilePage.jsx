@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaArrowLeft,
@@ -28,38 +28,85 @@ const toSkillList = (skills) => {
   return [];
 };
 
+const profileDraftKey = (user) => `profileDraft:${user?.id || user?.email || 'guest'}`;
+
+const readProfileDraft = (user) => {
+  if (typeof window === 'undefined') {
+    return {};
+  }
+
+  try {
+    const draft = window.localStorage.getItem(profileDraftKey(user));
+    return draft ? JSON.parse(draft) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveProfileDraft = (user, draft) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(profileDraftKey(user), JSON.stringify(draft));
+  } catch {
+    // Keep the profile usable if browser storage is unavailable or full.
+  }
+};
+
+const removeProfileDraft = (user) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.removeItem(profileDraftKey(user));
+};
+
+const buildInitialFormData = (user, draft) => ({
+  user_id: draft.user_id || user?.id || 1,
+  username: draft.username ?? user?.name ?? '',
+  email: draft.email ?? user?.email ?? '',
+  portfolio_photo_url: draft.portfolio_photo_url ?? user?.portfolio_photo_url ?? '',
+  portfolio_banner_url: draft.portfolio_banner_url ?? user?.portfolio_banner_url ?? '',
+  location: draft.location ?? user?.location ?? '',
+  college: draft.college ?? user?.college ?? '',
+  domain: draft.domain ?? user?.domain ?? 'Backend',
+  branch: draft.branch ?? user?.branch ?? '',
+  job_role:
+    draft.job_role ??
+    user?.job_role ??
+    user?.mock_interview?.target_role ??
+    getJobRolesForBranch(user?.branch || '')[0] ??
+    '',
+  skills: toSkillList(draft.skills ?? user?.collaboration_skills ?? user?.skills),
+  interests: Array.isArray(draft.interests) ? draft.interests : user?.interests || [],
+  bio: draft.bio ?? user?.bio ?? '',
+  github_url: draft.github_url ?? user?.github_url ?? '',
+  linkedin_url: draft.linkedin_url ?? user?.linkedin_url ?? '',
+});
+
 const ProfilePage = ({ theme }) => {
   const navigate = useNavigate();
   const isDark = theme === 'dark';
   const currentUser = useMemo(() => readCurrentUser(), []);
+  const savedDraft = useMemo(() => readProfileDraft(currentUser), [currentUser]);
   const profileFileInputRef = useRef(null);
   const bannerFileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [profileImagePreview, setProfileImagePreview] = useState(currentUser?.portfolio_photo_url || '');
-  const [bannerImagePreview, setBannerImagePreview] = useState(currentUser?.portfolio_banner_url || '');
-  const [formData, setFormData] = useState({
-    user_id: currentUser?.id || 1,
-    username: currentUser?.name || '',
-    email: currentUser?.email || '',
-    portfolio_photo_url: currentUser?.portfolio_photo_url || '',
-    portfolio_banner_url: currentUser?.portfolio_banner_url || '',
-    location: currentUser?.location || '',
-    college: currentUser?.college || '',
-    domain: currentUser?.domain || 'Backend',
-    branch: currentUser?.branch || '',
-    job_role:
-      currentUser?.job_role ||
-      currentUser?.mock_interview?.target_role ||
-      getJobRolesForBranch(currentUser?.branch || '')[0] ||
-      '',
-    skills: toSkillList(currentUser?.collaboration_skills || currentUser?.skills),
-    interests: currentUser?.interests || [],
-    bio: currentUser?.bio || '',
-    github_url: currentUser?.github_url || '',
-    linkedin_url: currentUser?.linkedin_url || '',
-  });
+  const [profileImagePreview, setProfileImagePreview] = useState(savedDraft.portfolio_photo_url ?? currentUser?.portfolio_photo_url ?? '');
+  const [bannerImagePreview, setBannerImagePreview] = useState(savedDraft.portfolio_banner_url ?? currentUser?.portfolio_banner_url ?? '');
+  const [formData, setFormData] = useState(() => buildInitialFormData(currentUser, savedDraft));
   const [skillInput, setSkillInput] = useState({ name: '', level: 'intermediate' });
+
+  useEffect(() => {
+    saveProfileDraft(currentUser, {
+      ...formData,
+      portfolio_photo_url: profileImagePreview,
+      portfolio_banner_url: bannerImagePreview,
+    });
+  }, [bannerImagePreview, currentUser, formData, profileImagePreview]);
 
   const domains = ['Backend', 'Frontend', 'Full Stack', 'AI/ML', 'Data Science', 'Mobile', 'DevOps', 'Cloud'];
   const interestOptions = [
@@ -224,6 +271,7 @@ const ProfilePage = ({ theme }) => {
         : [...registeredUsers, updatedUser];
 
       saveRegisteredUsers(nextRegisteredUsers);
+      removeProfileDraft(currentUser);
 
       setMessage('Profile saved successfully! ✅');
       setTimeout(() => {

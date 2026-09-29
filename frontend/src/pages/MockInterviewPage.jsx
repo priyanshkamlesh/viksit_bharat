@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FaArrowRight,
   FaChartLine,
-  FaCheckCircle,
   FaClock,
   FaHome,
   FaInbox,

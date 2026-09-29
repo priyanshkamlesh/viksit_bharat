@@ -6,6 +6,7 @@ import Register from './pages/RegistrationPage'
 import Home from './pages/Home'
 import InterviewPage from './pages/InterviewPage'
 import MockInterviewPage from './pages/MockInterviewPage'
+import MockTestPage from './pages/MockTestPage'
 import RecommendationPage from './pages/RecommendationPage'
 import ResumePage from './pages/ResumePage'
 import ChatbotPage from './pages/ChatbotPage'
@@ -22,6 +23,14 @@ import FloatingChatbot from './components/FloatingChatbot'
 import ResponsiveNavigation from './components/ResponsiveNavigation'
 import ToastFeedback from './components/ToastFeedback'
 import { readCurrentUser } from './lib/currentUser'
+
+const ProfileRoute = ({ currentUser, theme, setTheme }) => {
+  if (!currentUser) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <ProfilePage theme={theme} setTheme={setTheme} />
+}
 
 const App = () => {
   const [currentUser, setCurrentUser] = useState(() => (typeof window === 'undefined' ? null : readCurrentUser()))
@@ -73,8 +82,8 @@ const App = () => {
           <Route path='/login' element={<Login theme={theme} setTheme={setTheme} />} />
           <Route path='/auth/callback' element={<OAuthCallback theme={theme} setTheme={setTheme} />} />
           <Route path='/register' element={<Register theme={theme} setTheme={setTheme} />} />
-          <Route path='/profile' element={<ProtectedRoute element={<ProfilePage theme={theme} setTheme={setTheme} />} />} />
-          <Route path='/collaboration-profile' element={<ProtectedRoute element={<ProfilePage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/profile' element={<ProfileRoute currentUser={currentUser} theme={theme} setTheme={setTheme} />} />
+          <Route path='/collaboration-profile' element={<ProfileRoute currentUser={currentUser} theme={theme} setTheme={setTheme} />} />
           <Route path='/home' element={<ProtectedRoute element={<Home theme={theme} setTheme={setTheme} />} />} />
           <Route path='/job-roles' element={<ProtectedRoute element={<JobRolePage theme={theme} setTheme={setTheme} />} />} />
           <Route path='/job-roles/types' element={<ProtectedRoute element={<JobRoleTypesPage theme={theme} setTheme={setTheme} />} />} />
@@ -82,6 +91,7 @@ const App = () => {
           <Route path='/inbox' element={<ProtectedRoute element={<InboxPage theme={theme} setTheme={setTheme} />} />} />
           <Route path='/interview' element={<ProtectedRoute element={<InterviewPage theme={theme} setTheme={setTheme} />} />} />
           <Route path='/interview/mock' element={<ProtectedRoute element={<MockInterviewPage theme={theme} setTheme={setTheme} />} />} />
+          <Route path='/interview/mock-test' element={<ProtectedRoute element={<MockTestPage theme={theme} />} />} />
           <Route path='/interview/communication' element={<ProtectedRoute element={<CommunicationSkillsPage theme={theme} setTheme={setTheme} />} />} />
           <Route path='/interview/interpersonal' element={<ProtectedRoute element={<InterpersonalSkillsPage theme={theme} setTheme={setTheme} />} />} />
           <Route path='/interview/tnp' element={<ProtectedRoute element={<TnpSkillsPage theme={theme} />} />} />

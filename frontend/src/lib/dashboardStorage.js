@@ -1,4 +1,5 @@
 const CONNECTION_HISTORY_KEY = 'connectionHistory';
+const MOCK_TEST_HISTORY_KEY = 'mockTestHistory';
 
 const buildScopedKey = (baseKey, userId) => `${baseKey}:${userId || 'guest'}`;
 
@@ -44,6 +45,25 @@ export function recordConnection(userId, entry) {
   const record = {
     id: entry.id || createId(),
     connectedAt: entry.connectedAt || new Date().toISOString(),
+    ...entry,
+  };
+
+  writeList(key, [record, ...current]);
+  return record;
+}
+
+export function readMockTestHistory(userId) {
+  return readList(buildScopedKey(MOCK_TEST_HISTORY_KEY, userId)).sort(
+    (left, right) => new Date(right.completedAt).getTime() - new Date(left.completedAt).getTime(),
+  );
+}
+
+export function recordMockTest(userId, entry) {
+  const key = buildScopedKey(MOCK_TEST_HISTORY_KEY, userId);
+  const current = readList(key);
+  const record = {
+    id: entry.id || createId(),
+    completedAt: entry.completedAt || new Date().toISOString(),
     ...entry,
   };
 
