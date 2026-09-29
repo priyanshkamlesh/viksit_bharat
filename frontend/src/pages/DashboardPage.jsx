@@ -18,11 +18,304 @@ const formatDateTime = (value) => {
   return date.toLocaleString();
 };
 
+
 const DashboardPage = ({ theme, setTheme }) => {
   const navigate = useNavigate();
   const isDark = theme === 'dark';
   const [currentUser, setCurrentUser] = useState(() => readCurrentUser());
   const [historyVersion, setHistoryVersion] = useState(0);
+
+  const [careerAnalysis, setCareerAnalysis] = useState(null);
+  const [careerEvidence, setCareerEvidence] = useState(null);
+  const [careerLoading, setCareerLoading] = useState(false);
+
+  const analyzeCareer = async () => {
+
+    if (!currentUser) return;
+
+    setCareerLoading(true);
+
+    try {
+
+      const response = await fetch(
+        'http://localhost:8000/career/analyze',
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json'
+          },
+
+          body: JSON.stringify({
+
+            user_id: currentUser.id,
+
+            target_role:
+              currentUser.job_role ||
+              'Software Engineer',
+
+            skills:
+              currentUser.skills || {},
+
+            ats_score:
+              currentUser.ats_score || 0,
+
+            project_score:
+              currentUser.project_score || 0,
+
+            interview_score:
+              currentUser.interview_score || 0,
+
+            assessment_score:
+              currentUser.assessment_score || 0
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          'Career analysis failed'
+        );
+      }
+
+      const data =
+        await response.json();
+
+      setCareerAnalysis(data);
+
+    } catch (error) {
+
+      console.error(
+        'Career analysis error:',
+        error
+      );
+
+    } finally {
+
+      setCareerLoading(false);
+
+    }
+  };
+
+  useEffect(() => {
+
+    analyzeCareer();
+
+  }, [currentUser]);
+
+  const loadCareerReadiness = async () => {
+    try {
+      setCareerLoading(true);
+
+      // ---------------------------------------
+      // Helper: Always return an array
+      // ---------------------------------------
+      const toArray = (value) => {
+        if (Array.isArray(value)) {
+          return value;
+        }
+
+        if (value && typeof value === "object") {
+          return Object.keys(value);
+        }
+
+        if (typeof value === "string" && value.trim()) {
+          return value
+            .split(",")
+            .map(item => item.trim())
+            .filter(Boolean);
+        }
+
+        return [];
+      };
+
+      // ---------------------------------------
+      // Extract existing user data safely
+      // ---------------------------------------
+
+      const resumeSkills = toArray(
+        currentUser?.resume_skills ||
+        currentUser?.resumeSkills ||
+        currentUser?.skills
+      );
+
+      const projectSkills = toArray(
+        currentUser?.project_skills ||
+        currentUser?.projectSkills
+      );
+
+      const githubSkills = toArray(
+        currentUser?.github_skills ||
+        currentUser?.githubSkills
+      );
+
+      const projects = Array.isArray(currentUser?.projects)
+        ? currentUser.projects
+        : [];
+
+      const mockTests = Array.isArray(currentUser?.mock_tests)
+        ? currentUser.mock_tests
+        : (
+          Array.isArray(currentUser?.mockTests)
+            ? currentUser.mockTests
+            : []
+        );
+
+      const atsScore = Number(
+        currentUser?.ats_score ||
+        currentUser?.atsScore ||
+        0
+      );
+
+      const interviewScore = Number(
+        currentUser?.interview_score ||
+        currentUser?.interviewScore ||
+        0
+      );
+
+      // ---------------------------------------
+      // Build evidence payload
+      // ---------------------------------------
+
+      const evidencePayload = {
+        resume_skills: resumeSkills,
+        project_skills: projectSkills,
+        github_skills: githubSkills,
+        projects: projects,
+        mock_tests: mockTests,
+        ats_score: Number.isFinite(atsScore) ? atsScore : 0,
+        interview_score: Number.isFinite(interviewScore)
+          ? interviewScore
+          : 0
+      };
+
+      console.log(
+        "Career Evidence Payload:",
+        evidencePayload
+      );
+
+      // ---------------------------------------
+      // STEP 1: Career Evidence
+      // ---------------------------------------
+
+      const evidenceResponse = await fetch(
+        "http://localhost:8000/career/evidence",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(evidencePayload)
+        }
+      );
+
+      if (!evidenceResponse.ok) {
+
+        const errorBody = await evidenceResponse.text();
+
+        console.error(
+          "Career Evidence API Error:",
+          evidenceResponse.status,
+          errorBody
+        );
+
+        throw new Error(
+          `Failed to load career evidence (${evidenceResponse.status})`
+        );
+      }
+
+      const evidence = await evidenceResponse.json();
+
+      console.log(
+        "Career Evidence Result:",
+        evidence
+      );
+
+      setCareerEvidence(evidence);
+
+      // ---------------------------------------
+      // STEP 2: Career Analysis
+      // ---------------------------------------
+
+      const analysisPayload = {
+        user_id: currentUser?.id
+          ? Number(currentUser.id)
+          : null,
+
+        target_role:
+          currentUser?.job_role ||
+          currentUser?.jobRole ||
+          "Software Engineer",
+
+        skills: evidence.skills || {},
+
+        ats_score: evidence.ats_score || 0,
+
+        project_score:
+          evidence.project_score || 0,
+
+        interview_score:
+          evidence.interview_score || 0,
+
+        assessment_score:
+          evidence.assessment_score || 0
+      };
+
+      console.log(
+        "Career Analysis Payload:",
+        analysisPayload
+      );
+
+      const analysisResponse = await fetch(
+        "http://localhost:8000/career/analyze",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(analysisPayload)
+        }
+      );
+
+      if (!analysisResponse.ok) {
+
+        const errorBody = await analysisResponse.text();
+
+        console.error(
+          "Career Analysis API Error:",
+          analysisResponse.status,
+          errorBody
+        );
+
+        throw new Error(
+          `Failed to load career analysis (${analysisResponse.status})`
+        );
+      }
+
+      const analysis = await analysisResponse.json();
+
+      console.log(
+        "Career Analysis Result:",
+        analysis
+      );
+
+      setCareerAnalysis(analysis);
+
+    } catch (error) {
+
+      console.error(
+        "Career readiness error:",
+        error
+      );
+
+    } finally {
+      setCareerLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCareerReadiness();
+  }, []);
 
   const cardBase = isDark
     ? 'border border-emerald-500/15 bg-white/5 text-emerald-50 shadow-[0_24px_60px_rgba(0,0,0,0.28)]'
@@ -197,7 +490,6 @@ const DashboardPage = ({ theme, setTheme }) => {
                   {recentConnections.length} recent
                 </div>
               </div>
-
               <div className="mt-6 space-y-4">
                 {recentConnections.length ? (
                   recentConnections.map((item) => (
@@ -236,6 +528,7 @@ const DashboardPage = ({ theme, setTheme }) => {
                     No connections recorded yet. Start a mock interview session to track when you connected with collaborators.
                   </div>
                 )}
+
               </div>
             </div>
           </section>

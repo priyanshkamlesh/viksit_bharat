@@ -118,9 +118,8 @@ const Home = ({ theme, setTheme }) => {
   return (
     <div className={`min-h-dvh w-full overflow-y-auto transition-colors duration-500 ${isDark ? 'bg-[#050f0a] text-white' : 'bg-[#f0fdf4] text-slate-900'}`}>
       <div
-        className={`mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 py-5 transition-all duration-700 sm:px-8 sm:py-6 ${
-          isReady ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-        }`}
+        className={`mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 py-5 transition-all duration-700 sm:px-8 sm:py-6 ${isReady ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+          }`}
       >
         <nav className={`flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] px-5 py-4 backdrop-blur-2xl sm:rounded-full ${isDark ? 'border border-emerald-500/15 bg-white/5' : 'border border-white/70 bg-white/75'}`}>
           <div>
@@ -279,6 +278,269 @@ const Home = ({ theme, setTheme }) => {
                 </div>
               </button>
             </div>
+            {/* ============================= */}
+            {/* AI CAREER READINESS CARD */}
+            {/* ============================= */}
+
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "35px",
+                marginTop: "28px",
+                padding: "30px 34px",
+                borderRadius: "22px",
+                border: "1px solid rgba(85, 217, 155, 0.25)",
+                background:
+                  "linear-gradient(120deg, #0d2119 0%, #0b1713 55%, #0e2119 100%)",
+                overflow: "hidden",
+                boxShadow:
+                  "0 15px 45px rgba(0, 0, 0, 0.18)"
+              }}
+            >
+              {/* Decorative Glow */}
+
+              <div
+                style={{
+                  position: "absolute",
+                  width: "220px",
+                  height: "220px",
+                  right: "90px",
+                  top: "-100px",
+                  borderRadius: "50%",
+                  background:
+                    "rgba(85, 217, 155, 0.08)",
+                  filter: "blur(30px)",
+                  pointerEvents: "none"
+                }}
+              />
+
+
+              {/* LEFT CONTENT */}
+
+              <div
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  maxWidth: "720px"
+                }}
+              >
+
+                {/* Small Label */}
+
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginBottom: "12px",
+                    color: "#55d99b",
+                    fontSize: "11px",
+                    fontWeight: "700",
+                    letterSpacing: "2.5px"
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "7px",
+                      height: "7px",
+                      borderRadius: "50%",
+                      background: "#55d99b",
+                      boxShadow:
+                        "0 0 12px rgba(85, 217, 155, 0.8)"
+                    }}
+                  />
+
+                  AI CAREER INTELLIGENCE
+                </div>
+
+
+                {/* Heading */}
+
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: "30px",
+                    lineHeight: "1.2",
+                    fontWeight: "750",
+                    color: "#f5f7f6"
+                  }}
+                >
+                  Are You Career Ready?
+                </h2>
+
+
+                {/* Description */}
+
+                <p
+                  style={{
+                    margin: "12px 0 22px",
+                    maxWidth: "650px",
+                    color: "#96a69f",
+                    fontSize: "14px",
+                    lineHeight: "1.7"
+                  }}
+                >
+                  Measure your employability using your skills,
+                  resume, projects, assessments and interview
+                  performance. Discover your skill gaps and get
+                  a personalized career roadmap.
+                </p>
+
+
+                {/* Features */}
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "9px",
+                    marginBottom: "22px"
+                  }}
+                >
+
+                  {[
+                    "Skill Analysis",
+                    "Resume Readiness",
+                    "Project Evidence",
+                    "Career Roadmap"
+                  ].map((item) => (
+                    <span
+                      key={item}
+                      style={{
+                        padding: "7px 11px",
+                        borderRadius: "8px",
+                        border:
+                          "1px solid rgba(85, 217, 155, 0.14)",
+                        background:
+                          "rgba(85, 217, 155, 0.05)",
+                        color: "#aebbb5",
+                        fontSize: "11px"
+                      }}
+                    >
+                      {item}
+                    </span>
+                  ))}
+
+                </div>
+
+
+                {/* CTA */}
+
+                <button
+                  onClick={() =>
+                    navigate("/career-readiness")
+                  }
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "12px 19px",
+                    border: "none",
+                    borderRadius: "10px",
+                    background: "#55d99b",
+                    color: "#07100d",
+                    fontSize: "13px",
+                    fontWeight: "750",
+                    cursor: "pointer",
+                    boxShadow:
+                      "0 8px 25px rgba(85, 217, 155, 0.16)",
+                    transition:
+                      "transform 0.2s ease, box-shadow 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform =
+                      "translateY(-2px)";
+
+                    e.currentTarget.style.boxShadow =
+                      "0 12px 30px rgba(85, 217, 155, 0.25)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform =
+                      "translateY(0)";
+
+                    e.currentTarget.style.boxShadow =
+                      "0 8px 25px rgba(85, 217, 155, 0.16)";
+                  }}
+                >
+                  Check My Career Readiness
+
+                  <span
+                    style={{
+                      fontSize: "17px",
+                      lineHeight: 1
+                    }}
+                  >
+                    →
+                  </span>
+                </button>
+
+              </div>
+
+
+              {/* RIGHT VISUAL */}
+
+              <div
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  width: "190px",
+                  height: "190px",
+                  minWidth: "190px",
+                  borderRadius: "50%",
+                  border:
+                    "1px solid rgba(85, 217, 155, 0.25)",
+                  background:
+                    "radial-gradient(circle, rgba(85,217,155,0.10), rgba(85,217,155,0.025) 65%, transparent 70%)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow:
+                    "inset 0 0 35px rgba(85, 217, 155, 0.05)"
+                }}
+              >
+
+                <div
+                  style={{
+                    fontSize: "34px",
+                    marginBottom: "8px"
+                  }}
+                >
+                  🎯
+                </div>
+
+                <div
+                  style={{
+                    color: "#71827a",
+                    fontSize: "10px",
+                    letterSpacing: "1.5px",
+                    textTransform: "uppercase"
+                  }}
+                >
+                  AI Powered
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "5px",
+                    color: "#55d99b",
+                    fontSize: "18px",
+                    fontWeight: "750",
+                    textAlign: "center",
+                    lineHeight: "1.2"
+                  }}
+                >
+                  Career
+                  <br />
+                  Intelligence
+                </div>
+
+              </div>
+
+            </div>
 
             <div className="mx-auto mt-10 max-w-3xl text-center">
 
@@ -295,6 +557,7 @@ const Home = ({ theme, setTheme }) => {
                 Switch to Dashboard
                 <FaArrowRight />
               </button>
+
             </div>
           </div>
         </main>

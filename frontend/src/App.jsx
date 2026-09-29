@@ -23,6 +23,7 @@ import FloatingChatbot from './components/FloatingChatbot'
 import ResponsiveNavigation from './components/ResponsiveNavigation'
 import ToastFeedback from './components/ToastFeedback'
 import { readCurrentUser } from './lib/currentUser'
+import CareerReadinessPage from "./pages/CareerReadinessPage";
 
 const ProfileRoute = ({ currentUser, theme, setTheme }) => {
   if (!currentUser) {
@@ -101,6 +102,7 @@ const App = () => {
           <Route path='/resume' element={<ProtectedRoute element={<ResumePage theme={theme} setTheme={setTheme} />} />} />
           <Route path='/chatbot' element={<ProtectedRoute element={<ChatbotPage theme={theme} setTheme={setTheme} />} />} />
           <Route path='*' element={<Navigate to={currentUser ? '/home' : '/login'} replace />} />
+          <Route path="/career-readiness" element={<CareerReadinessPage />} />
         </Routes>
         {currentUser && <FloatingChatbot theme={theme} />}
       </div>

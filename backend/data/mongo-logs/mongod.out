@@ -1,2 +1,0 @@
-{"t":{"$date":"2026-09-27T18:50:19.581+05:30"},"s":"I",  "c":"-",        "id":8991200, "ctx":"thread1","msg":"Shuffling initializers","attr":{"seed":2128875806}}
-{"t":{"$date":"2026-09-27T18:50:19.586+05:30"},"s":"F",  "c":"CONTROL",  "id":20574,   "ctx":"thread1","msg":"Error during global initialization","attr":{"error":{"code":38,"codeName":"FileNotOpen","errmsg":"Can't initialize rotatable log file :: caused by :: Failed to open /opt/homebrew/var/log/mongodb/mongo.log"}}}

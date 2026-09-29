@@ -1,0 +1,128 @@
+{
+  "Software Engineer": {
+    "skills": {
+      "Python": 75,
+      "Java": 70,
+      "JavaScript": 70,
+      "Data Structures": 85,
+      "Algorithms": 85,
+      "SQL": 65,
+      "Git": 70,
+      "REST APIs": 70,
+      "Object Oriented Programming": 75,
+      "Problem Solving": 85,
+      "Communication": 60
+    }
+  },
+
+  "Full Stack Developer": {
+    "skills": {
+      "JavaScript": 85,
+      "React": 80,
+      "Node.js": 75,
+      "HTML": 75,
+      "CSS": 70,
+      "SQL": 65,
+      "MongoDB": 65,
+      "REST APIs": 75,
+      "Git": 70,
+      "Problem Solving": 75,
+      "Communication": 60
+    }
+  },
+
+  "Data Scientist": {
+    "skills": {
+      "Python": 85,
+      "SQL": 80,
+      "Statistics": 85,
+      "Machine Learning": 90,
+      "Pandas": 80,
+      "NumPy": 80,
+      "Data Visualization": 75,
+      "Deep Learning": 65,
+      "Git": 60,
+      "Problem Solving": 85,
+      "Communication": 65
+    }
+  },
+
+  "Machine Learning Engineer": {
+    "skills": {
+      "Python": 90,
+      "Machine Learning": 90,
+      "Deep Learning": 80,
+      "TensorFlow": 70,
+      "PyTorch": 70,
+      "Scikit-learn": 80,
+      "SQL": 65,
+      "Git": 70,
+      "Docker": 60,
+      "Mathematics": 75,
+      "Problem Solving": 85
+    }
+  },
+
+  "Data Analyst": {
+    "skills": {
+      "SQL": 90,
+      "Python": 75,
+      "Excel": 80,
+      "Statistics": 80,
+      "Pandas": 75,
+      "Data Visualization": 85,
+      "Power BI": 70,
+      "Tableau": 65,
+      "Communication": 70,
+      "Problem Solving": 75
+    }
+  },
+
+  "DevOps Engineer": {
+    "skills": {
+      "Linux": 80,
+      "Git": 80,
+      "Docker": 85,
+      "Kubernetes": 75,
+      "CI/CD": 85,
+      "AWS": 70,
+      "Terraform": 65,
+      "Python": 60,
+      "Networking": 70,
+      "Monitoring": 65,
+      "Problem Solving": 75
+    }
+  },
+
+  "Cloud Engineer": {
+    "skills": {
+      "AWS": 85,
+      "Azure": 70,
+      "GCP": 65,
+      "Linux": 80,
+      "Networking": 80,
+      "Docker": 70,
+      "Kubernetes": 65,
+      "Terraform": 70,
+      "Security": 65,
+      "Python": 55,
+      "Problem Solving": 75
+    }
+  },
+
+  "Backend Engineer": {
+    "skills": {
+      "Python": 80,
+      "Node.js": 75,
+      "FastAPI": 70,
+      "REST APIs": 85,
+      "SQL": 75,
+      "MongoDB": 70,
+      "PostgreSQL": 70,
+      "Git": 75,
+      "Docker": 60,
+      "System Design": 70,
+      "Problem Solving": 85
+    }
+  }
+}
