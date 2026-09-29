@@ -1740,31 +1740,47 @@ function CareerReadinessPage() {
 
                         <button
                             style={{
-                                border:
-                                    "none",
-                                borderRadius:
-                                    "10px",
-                                padding:
-                                    "13px 20px",
-                                background:
-                                    "#55d99b",
-                                color:
-                                    "#07100d",
-                                fontWeight:
-                                    "700",
-                                cursor:
-                                    "pointer",
-                                whiteSpace:
-                                    "nowrap",
+                                border: "none",
+                                borderRadius: "10px",
+                                padding: "13px 20px",
+                                background: "#55d99b",
+                                color: "#07100d",
+                                fontWeight: "700",
+                                cursor: "pointer",
+                                whiteSpace: "nowrap",
                             }}
                             onClick={() => {
+                                if (!careerAnalysis) {
+                                    console.error(
+                                        "Career analysis is not available."
+                                    );
+                                    return;
+                                }
+
+                                const roadmapData = {
+                                    targetRole:
+                                        careerAnalysis.target_role ||
+                                        targetRole,
+
+                                    skillGaps:
+                                        careerAnalysis.skill_gaps || [],
+                                };
+
                                 console.log(
-                                    "Opening career roadmap"
+                                    "Career roadmap data:",
+                                    roadmapData
                                 );
+
+                                localStorage.setItem(
+                                    "careerRoadmapData",
+                                    JSON.stringify(roadmapData)
+                                );
+
+                                window.location.href =
+                                    "/career-roadmap";
                             }}
                         >
-                            View Career
-                            Roadmap →
+                            View Career Roadmap →
                         </button>
                     </section>
                 </>

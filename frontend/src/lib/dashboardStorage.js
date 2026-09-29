@@ -1,5 +1,8 @@
 const CONNECTION_HISTORY_KEY = 'connectionHistory';
 const MOCK_TEST_HISTORY_KEY = 'mockTestHistory';
+const CAREER_ASSESSMENT_HISTORY_KEY ='careerAssessmentHistory';
+
+const SAVED_TEST_KEY ='savedTests';
 
 const buildScopedKey = (baseKey, userId) => `${baseKey}:${userId || 'guest'}`;
 
@@ -69,4 +72,104 @@ export function recordMockTest(userId, entry) {
 
   writeList(key, [record, ...current]);
   return record;
+}
+
+export function readCareerAssessmentHistory(userId) {
+  return readList(
+    buildScopedKey(
+      CAREER_ASSESSMENT_HISTORY_KEY,
+      userId
+    )
+  ).sort(
+    (left, right) =>
+      new Date(right.completedAt).getTime() -
+      new Date(left.completedAt).getTime()
+  );
+}
+
+
+export function recordCareerAssessment(
+  userId,
+  entry
+) {
+  const key = buildScopedKey(
+    CAREER_ASSESSMENT_HISTORY_KEY,
+    userId
+  );
+
+  const current = readList(key);
+
+  const record = {
+    id: entry.id || createId(),
+    completedAt:
+      entry.completedAt ||
+      new Date().toISOString(),
+    ...entry,
+  };
+
+  writeList(
+    key,
+    [record, ...current]
+  );
+
+  return record;
+}
+
+
+export function readSavedTests(userId) {
+  return readList(
+    buildScopedKey(
+      SAVED_TEST_KEY,
+      userId
+    )
+  ).sort(
+    (left, right) =>
+      new Date(right.savedAt).getTime() -
+      new Date(left.savedAt).getTime()
+  );
+}
+
+
+export function saveTest(
+  userId,
+  entry
+) {
+  const key = buildScopedKey(
+    SAVED_TEST_KEY,
+    userId
+  );
+
+  const current = readList(key);
+
+  const record = {
+    id: entry.id || createId(),
+    savedAt:
+      entry.savedAt ||
+      new Date().toISOString(),
+    ...entry,
+  };
+
+  writeList(
+    key,
+    [record, ...current]
+  );
+
+  return record;
+}
+
+
+export function getSavedTest(
+  userId,
+  testId
+) {
+  const tests =
+    readSavedTests(userId);
+
+  return (
+    tests.find(
+      (test) =>
+        String(test.id) ===
+        String(testId)
+    ) || null
+  );
 }

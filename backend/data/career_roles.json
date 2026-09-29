@@ -124,5 +124,23 @@
       "System Design": 70,
       "Problem Solving": 85
     }
+  },
+  "Product Manager": {
+  "skills": {
+    "Product Management": 85,
+    "Product Strategy": 80,
+    "Market Research": 75,
+    "User Research": 75,
+    "Agile": 75,
+    "Scrum": 70,
+    "Communication": 80,
+    "Problem Solving": 80,
+    "Leadership": 75,
+    "Project Management": 80,
+    "Data Analysis": 65,
+    "SQL": 55,
+    "Excel": 65,
+    "Documentation": 70
   }
+}
 }

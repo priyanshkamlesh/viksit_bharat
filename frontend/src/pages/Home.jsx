@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { FaArrowRight, FaBriefcase, FaFileAlt, FaInbox, FaMicrophoneAlt, FaMoon, FaSignOutAlt, FaSun, FaSyncAlt, FaUserCheck, FaUserCircle, FaUsers } from 'react-icons/fa';
+import { FaArrowRight, FaBriefcase, FaFileAlt, FaInbox, FaMicrophoneAlt, FaClipboardCheck, FaMoon, FaSignOutAlt, FaSun, FaSyncAlt, FaUserCheck, FaUserCircle, FaUsers } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { fetchBackendHealth, fetchUserNotifications } from '../lib/api';
 import { clearCurrentUser, readCurrentUser } from '../lib/currentUser';
@@ -249,7 +249,7 @@ const Home = ({ theme, setTheme }) => {
               </button>
             </div>
 
-            <div className="mx-auto mt-8 grid max-w-5xl gap-6 md:grid-cols-2">
+            <div className="mx-auto mt-10 grid max-w-6xl gap-6 lg:grid-cols-3">
               <button type="button" onClick={() => navigate('/interview/mock')} className={`group rounded-[2rem] p-7 text-left transition-all hover:-translate-y-1 ${cardBase}`}>
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark ? 'bg-fuchsia-400/10 text-fuchsia-300' : 'bg-fuchsia-100 text-fuchsia-700'}`}>
                   <FaUserCheck className="text-xl" />
@@ -274,6 +274,44 @@ const Home = ({ theme, setTheme }) => {
                 </p>
                 <div className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark ? 'text-sky-300' : 'text-sky-700'}`}>
                   Explore track
+                  <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/career-assessment')}
+                className={`group rounded-[2rem] p-7 text-left transition-all hover:-translate-y-1 ${cardBase}`}
+              >
+                <div
+                  className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${isDark
+                      ? 'bg-emerald-400/10 text-emerald-300'
+                      : 'bg-emerald-100 text-emerald-700'
+                    }`}
+                >
+                  <FaClipboardCheck className="text-xl" />
+                </div>
+
+                <h3 className="text-xl font-black">
+                  Career Assessment
+                </h3>
+
+                <p
+                  className={`mt-3 text-sm leading-6 ${isDark
+                      ? 'text-emerald-50/70'
+                      : 'text-slate-600'
+                    }`}
+                >
+                  Assess your skills, track your career progress, or
+                  continue the assessment path from your personalized roadmap.
+                </p>
+
+                <div
+                  className={`mt-6 inline-flex items-center gap-2 text-sm font-bold ${isDark
+                      ? 'text-emerald-300'
+                      : 'text-emerald-700'
+                    }`}
+                >
+                  Start assessment
                   <FaArrowRight className="transition-transform group-hover:translate-x-1" />
                 </div>
               </button>

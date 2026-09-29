@@ -27,7 +27,23 @@ def get_roles():
             roles.keys()
         )
     }
+@router.get("/roles/{role_name}")
+def get_role_details(role_name: str):
 
+    roles = load_role_requirements()
+
+    if role_name not in roles:
+        raise HTTPException(
+            status_code=404,
+            detail="Career role not found."
+        )
+
+    role_data = roles[role_name]
+
+    return {
+        "role": role_name,
+        "skills": role_data.get("skills", {})
+    }
 
 @router.post(
     "/analyze",

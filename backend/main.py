@@ -22,6 +22,9 @@ from backend.routes.resume_routes import router as resume_router
 from backend.services import get_database, get_database_error
 from backend.routes.career_routes import router as career_router
 from backend.routes.career_evidence_routes import router as career_evidence_router
+from backend.routes.career_roadmap_routes import router as career_roadmap_router
+from backend.routes.career_assessment_routes import router as career_assessment_router
+
 app = FastAPI(title="AI Interview Prep Engine")
 
 app.add_middleware(
@@ -64,3 +67,5 @@ app.include_router(chatbot_router)
 app.include_router(resume_router)
 app.include_router(career_router)
 app.include_router(career_evidence_router)
+app.include_router(career_roadmap_router)
+app.include_router(career_assessment_router)

@@ -3,7 +3,7 @@ import { FaArrowLeft, FaCheckCircle, FaClipboardCheck, FaSpinner } from 'react-i
 import { useNavigate } from 'react-router-dom';
 import { generateMockTest } from '../lib/api';
 import { readCurrentUser } from '../lib/currentUser';
-import { recordMockTest } from '../lib/dashboardStorage';
+import { recordMockTest, saveTest } from '../lib/dashboardStorage';
 
 const TEST_OPTIONS = [
   { value: 'aptitude', title: 'Aptitude Test', description: 'Quantitative aptitude, arithmetic, ratios, time, work, and probability.' },
@@ -55,15 +55,64 @@ const MockTestPage = ({ theme }) => {
   };
 
   const submitTest = () => {
-    const questions = test?.questions || [];
-    const correct = questions.filter((question) => Number(answers[question.id]) === question.correct_index).length;
-    const completedResult = { correct, total: questions.length, percentage: Math.round((correct / questions.length) * 100) };
+    const questions =
+      test?.questions || [];
+
+    const correct =
+      questions.filter(
+        (question) =>
+          Number(
+            answers[question.id]
+          ) ===
+          question.correct_index
+      ).length;
+
+    const completedResult = {
+      correct,
+      total: questions.length,
+      percentage: Math.round(
+        (correct / questions.length) * 100
+      ),
+    };
+
     setResult(completedResult);
-    recordMockTest(currentUser?.id, {
-      category: test.category,
-      skill: test.skill,
-      ...completedResult,
-    });
+
+    recordMockTest(
+      currentUser?.id,
+      {
+        category: test.category,
+        skill: test.skill,
+        ...completedResult,
+      }
+    );
+  };
+  const saveCurrentTest = () => {
+    if (!test || !result) {
+      return;
+    }
+
+    const saved = saveTest(
+      currentUser?.id,
+      {
+        type: 'mock',
+        title:
+          `${test.category}${test.skill ? `: ${test.skill}` : ''}`,
+        category: test.category,
+        skill: test.skill || '',
+        questions: test.questions,
+        answers,
+        result,
+      }
+    );
+
+    alert(
+      'Mock test saved to your dashboard.'
+    );
+
+    console.log(
+      'Saved mock test:',
+      saved
+    );
   };
 
   return (
@@ -103,7 +152,7 @@ const MockTestPage = ({ theme }) => {
         {test ? <section className={`mt-8 rounded-[2rem] p-6 sm:p-8 ${cardBase}`}>
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-500/15 pb-5"><div><p className="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">{test.source || 'AI generated'}</p><h2 className="mt-2 text-2xl font-black">{test.category}{test.skill ? `: ${test.skill}` : ''}</h2></div><span className={`rounded-full px-3 py-1 text-xs font-bold ${isDark ? 'bg-white/10 text-emerald-100' : 'bg-emerald-50 text-emerald-700'}`}>{test.questions.length} MCQs</span></div>
           <div className="mt-6 space-y-6">{test.questions.map((question, index) => <article key={question.id} className={`rounded-2xl border p-5 ${isDark ? 'border-white/10 bg-white/5' : 'border-emerald-100 bg-emerald-50/35'}`}><p className="font-bold leading-7"><span className="mr-2 text-emerald-600">{index + 1}.</span>{question.question}</p><div className="mt-4 grid gap-2">{question.options.map((option, optionIndex) => { const selected = Number(answers[question.id]) === optionIndex; const isCorrect = result && optionIndex === question.correct_index; const isIncorrect = result && selected && !isCorrect; return <label key={option} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-sm ${isCorrect ? 'border-emerald-500 bg-emerald-500/15' : isIncorrect ? 'border-rose-400 bg-rose-50 text-rose-800' : selected ? 'border-emerald-400' : isDark ? 'border-white/10 bg-black/10' : 'border-emerald-100 bg-white'}`}><input type="radio" name={`question-${question.id}`} checked={selected} disabled={Boolean(result)} onChange={() => setAnswers((current) => ({ ...current, [question.id]: optionIndex }))} /><span>{option}</span></label>; })}</div>{result ? <p className={`mt-4 text-sm leading-6 ${isDark ? 'text-emerald-100/80' : 'text-slate-600'}`}>{question.explanation}</p> : null}</article>)}</div>
-          {!result ? <button type="button" onClick={submitTest} disabled={Object.keys(answers).length !== test.questions.length} className="mt-8 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-black text-white disabled:opacity-50"><FaCheckCircle /> Submit test</button> : <div className={`mt-8 rounded-2xl p-5 ${isDark ? 'bg-emerald-400/10 text-emerald-100' : 'bg-emerald-50 text-emerald-800'}`}><p className="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Test complete</p><p className="mt-2 text-3xl font-black">{result.correct}/{result.total} correct</p><p className="mt-2 text-sm">Score: {result.percentage}%</p></div>}
+          {!result ? <div className="mt-8 flex flex-wrap items-center gap-3"><button type="button" onClick={submitTest} disabled={Object.keys(answers).length !== test.questions.length} className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-black text-white disabled:opacity-50"><FaCheckCircle /> Submit test</button></div> : <div className={`mt-8 rounded-2xl p-5 ${isDark ? 'bg-emerald-400/10 text-emerald-100' : 'bg-emerald-50 text-emerald-800'}`}><p className="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Test complete</p><p className="mt-2 text-3xl font-black">{result.correct}/{result.total} correct</p><p className="mt-2 text-sm">Score: {result.percentage}%</p> <br></br><button type="button" onClick={saveCurrentTest} className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-black text-white"><FaClipboardCheck />Save Test to Dashboard</button></div>}
         </section> : null}
       </div>
     </main>
